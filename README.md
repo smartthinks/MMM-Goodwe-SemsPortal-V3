@@ -1,5 +1,5 @@
-# MMM-Goodwe-SemPortal
-A simple solar module for MagicMirror2 designed to integrate with a Goodwe-SemPortal system
+# MMM-Goodwe-SemsPortal
+A simple solar module for MagicMirror2 designed to integrate with a Goodwe-SemsPortal system
 
 
 
@@ -12,4 +12,4 @@ cd ~/MagicMirror/modules
 
 Clone this repository:
 ````
-git clone https://github.com/smartthinks/MMM-Goodwe-SemPortal.git
+git clone https://github.com/smartthinks/MMM-Goodwe-SemsPortal.git
