@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-Module.register("MMM-GoodWe", {
+Module.register("MMM-Goodwe-SemsPortal-V3", {
     // Default module config.
     defaults: {
         refInterval: 1000 * 60 * 5, //5 minutes
@@ -102,7 +102,8 @@ Module.register("MMM-GoodWe", {
                 // convert to Watt if it is a small number in kW
                 this.dayGeneration = (payload.kpi.power * 1000).toFixed(0).toString() + " W"
             } else {
-                this.dayGeneration = payload.kpi.power + " kWh";
+                //this.dayGeneration = payload.kpi.power + " kWh";
+                this.dayGeneration = Number(payload.kpi.power).toFixed(2) + " kWh";
             }
 
             this.loaded = true;
@@ -139,9 +140,9 @@ Module.register("MMM-GoodWe", {
         const isDayTime = hours > 6 && hours < 20;  
         
         if (isDayTime) {
-            img.src = "/modules/MMM-GoodWe/solar_white.png";
+            img.src = "/modules/MMM-Goodwe-SemsPortal-V3/solar_white.png";
         } else {
-            img.src = "/modules/MMM-GoodWe/moon.png";
+            img.src = "/modules/MMM-Goodwe-SemsPortal-V3/moon.png";
         }
 
         var sTitle = document.createElement("p");

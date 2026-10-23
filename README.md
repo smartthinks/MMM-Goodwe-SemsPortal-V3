@@ -1,4 +1,4 @@
-# MMM-GoodWe-SemsPortal-V3
+# MMM-Goodwe-SemsPortal-V3-SemsPortal-V3
 A Solar Module for MagicMirror2 designed to integrate with a GoodWe System
 
 ## Dependencies
@@ -11,7 +11,7 @@ A Solar Module for MagicMirror2 designed to integrate with a GoodWe System
  **Example:**
 ```
 {
-  module: 'MMM-GoodWe',
+  module: 'MMM-Goodwe-SemsPortal-V3',
   position: 'bottom_right',
   config: {
     username: "test@gmail.com", // Your GoodWe account email
