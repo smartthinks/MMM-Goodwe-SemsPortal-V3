@@ -1,4 +1,4 @@
-# MMM-GoodWe
+# MMM-GoodWe-SemsPortal-V3
 A Solar Module for MagicMirror2 designed to integrate with a GoodWe System
 
 ## Dependencies
