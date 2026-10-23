@@ -1,0 +1,147 @@
+{
+    "config": {
+        "main": [
+            {
+                "name": "Huidig Vermogen",
+                "NL_title": "Huidig Vermogen:",
+                "EN_title": "Current Power:",
+                "enabled": true
+            },
+            {
+                "name": "Day Revenue",
+                "NL_title": "Vandaag opgewekt:",
+                "EN_title": "Day Revenue:",
+                "enabled": true
+            },
+            {
+                "name": "Total Revenue",
+                "NL_title": "Totaal opgewekt:",
+                "EN_title": "Total Revenue:",
+                "enabled": true
+            }
+        ],
+        "left": [
+            {
+                "name": "Device Name",
+                "NL_title": "Device Naam:",
+                "EN_title": "Device Name:",
+                "API_field": "dmDeviceType",
+                "enabled": false
+            },
+            {
+                "name": "Serial Number",
+                "NL_title": "Serienummer:",
+                "EN_title": "Serial Number:",
+                "API_field": "serialNum",
+                "enabled": false
+            },
+            {
+                "name": "Checkcode",
+                "NL_title": "Checkcode:",
+                "EN_title": "Checkcode:",
+                "API_field": "laCheckcode",
+                "enabled": false
+            }, 
+            {
+                "name": "Capacity",
+                "NL_title": "Capaciteit:",
+                "EN_title": "Capacity:",
+                "API_field": "capacity",
+                "enabled": false
+            }, 
+            {
+                "name": "Connected Date",
+                "NL_title": "Connected:",
+                "EN_title": "Verbonden:",
+                "API_field": "laConnected",
+                "enabled": false
+            },
+            {
+                "name": "Power",
+                "NL_title": "Vermogen:",
+                "EN-title": "Power:",
+                "API_field": "InverterPowerOfPlantMonitor",
+                "enabled": false
+            },
+            {
+                "name": "AC Voltage",
+                "NL_title": "Wisselspanning:",
+                "EN_title": "AC Voltage:",
+                "API_field": "acVacVol",
+                "enabled": false
+            },
+            {
+                "name": "AC Current",
+                "NL_title": "Wisselstroom:",
+                "EN_title": "AC Current:",
+                "API_field": "acCurrent",
+                "enabled": false
+            },
+            {
+                "name": "AC Frequency",
+                "NL_title": "Wisselstroomfrequentie:",
+                "EN_title": "AC Frequency:",
+                "API_field": "acFrequency",
+                "enabled": false
+            },
+            {
+                "name": "AC Frequency",
+                "NL_title": "Wisselstroomfrequentie:",
+                "EN_title": "AC Frequency:",
+                "API_field": "acFrequency",
+                "enabled": false
+            }
+        ],
+        "right": [
+            {
+                "name": "Indoor temperature",
+                "NL_title": "Binnentemperatuur:",
+                "EN_title": "Indoor temperature:",
+                "API_field": "innerTemp",
+                "enabled": false
+            },
+            {
+                "name": "DC voltage/current 1",
+                "NL_title": "Gelijkspanning/-stroom 1:",
+                "EN_title": "DC voltage/current 1:",
+                "API_field": "dcVandC1",
+                "enabled": false
+            },
+            {
+                "name": "DC voltage/current 2",
+                "NL_title": "Gelijkspanning/-stroom 2:",
+                "EN_title": "DC voltage/current 2:",
+                "API_field": "dcVandC2",
+                "enabled": false
+            },
+            {
+                "name": "GFCI",
+                "NL_title": "GFCI:",
+                "EN_title": "GFCI:",
+                "API_field": "lab_GFCI",
+                "enabled": false
+            },
+            {
+                "name": "ISO Limit",
+                "NL_title": "ISO Limiet:",
+                "EN_title": "ISO Limit:",
+                "API_field": "lab_ISO",
+                "enabled": false
+            },
+            {
+                "name": "PF",
+                "NL_title": "PF:",
+                "EN_title": "PF:",
+                "API_field": "lab_pf",
+                "enabled": false
+            },
+            {
+                "name": "Reactive power:",
+                "NL_title": "Reactief vermogen:",
+                "EN_title": "Reactive power:",
+                "API_field": "lab_reactiveP",
+                "enabled": false
+            }
+        ]
+    }
+}
