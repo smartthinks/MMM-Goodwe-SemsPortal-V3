@@ -43,6 +43,12 @@ npm install node-fetch
 
 4. Start your Magic Mirror and the module should appear.
 
+## Update
+
+cd ~/MagicMirror/modules/MMM-Goodwe-SemsPortal-V3
+git pull
+Then restart MagicMirror² as Installation describes. CHANGELOG.md lists what changed and whether a config needs to change with it.
+
 ## Additional Options
 In the `goodwe-options.json` file, you can enable extra fields in the info section. To enable or disable a field, change the value `enabled` to `true` or `false` and save the file. Restart your MagicMirror after applying your changes and they should appear. You don't need to change anything else in this file.
 
