@@ -1,0 +1,10 @@
+{
+  "CURRENT_POWER": "Puissance actuelle",
+  "GENERATED_TODAY": "Production du jour",
+  "GENERATED_TOTAL": "Production totale",
+  "MISSING_CONFIGURATION": "Configuration manquante.",
+  "LOADING": "Chargement...",
+  "TODAY": "Aujourd’hui",
+  "OFFLINE": "Hors ligne",
+  "TEST_INVERTER": "Onduleur TEST"
+}

@@ -4,6 +4,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     defaults: {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
+        testMode: false,
         inverterGaugeStyle: "circle", // "circle" or "semicircle"
         totalGaugeStyle: "circle", // "circle" or "semicircle"
     },
@@ -11,7 +12,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     start: async function() {
         // Logging appears in Chrome developer tools console
         Log.info("Starting module: " + this.name);
-        this.titles = ["Huidig Vermogen", "Vandaag opgewekt", "Totaal opgewekt"];
+        this.titles = [this.translate("CURRENT_POWER"), this.translate("GENERATED_TODAY"), this.translate("GENERATED_TOTAL")];
         this.suffixes = ["kW", "kWh", "kWh", "kW", "kWh", "kWh"];
         this.inverters = [];
         this.currentPowerTitle = "";
@@ -51,6 +52,46 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     //Import additional CSS Styles
     getStyles: function() {
         return ['solar.css']
+    },
+
+    getTranslations: function() {
+        return {
+            en: "translations/en.json",
+            nl: "translations/nl.json",
+            de: "translations/de.json",
+            fr: "translations/fr.json"
+        };
+    },
+
+    // Follow the global MagicMirror language for detail labels as well.
+    germanFieldTitle: function(field) {
+        const labels = {
+            capacity: "Nennleistung:",
+            InverterPowerOfPlantMonitor: "Aktuelle Leistung:",
+            serialNum: "Seriennummer:",
+            dmDeviceType: "Gerätetyp:",
+            laCheckcode: "Prüfcode:",
+            innerTemp: "Innentemperatur:"
+        };
+        return labels[field.API_field] || field.EN_title || field.name;
+    },
+
+    frenchFieldTitle: function(field) {
+        const labels = {
+            capacity: "Puissance nominale :",
+            InverterPowerOfPlantMonitor: "Puissance actuelle :",
+            serialNum: "Numéro de série :",
+            dmDeviceType: "Type d’appareil :",
+            laCheckcode: "Code de vérification :",
+            innerTemp: "Température intérieure :"
+        };
+        return labels[field.API_field] || field.EN_title || field.name;
+    },
+
+    fieldTitle: function(field) {
+        const language = String((typeof config !== "undefined" && config.language) || "en").toLowerCase().split(/[-_]/)[0];
+        return (language === "nl" ? field.NL_title : language === "de" ? (field.DE_title || this.germanFieldTitle(field)) : language === "fr" ? (field.FR_title || this.frenchFieldTitle(field)) : field.EN_title)
+            || field.EN_title || field.NL_title || field.name || field.API_field || "";
     },
 
     authenticateUser: function() {
@@ -156,17 +197,40 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
     // Override dom generator
     getDom: function() {
+        if (this.config.testMode === true) {
+            const capacity = Number(this.config.totalCapacity) > 0 ? Number(this.config.totalCapacity) : 7500;
+            this.loaded = true;
+            this.invertersOffline = false;
+            this.currentPowerTotal = 1500;
+            this.currentPowerTitle = "1.50 kW";
+            this.dayGeneration = "4.20 kWh";
+            this.totalCapacity = capacity;
+            const fields = (side) => (this.goodWeOptions?.config?.[side] || []).map(field => ({
+                key: field.API_field, value: "—", unit: ""
+            })).filter(field => !["capacity", "InverterPowerOfPlantMonitor"].includes(field.key));
+            this.inverters = [{
+                name: this.translate("TEST_INVERTER"), out_pac: 1500,
+                eday: 4.2, etotal: 1000, invert_full: { status: 1 },
+                d: { output_power: "1500 W" },
+                dict: {
+                    left: [...fields("left"),
+                        { key: "capacity", value: capacity / 1000, unit: "kW" },
+                        { key: "InverterPowerOfPlantMonitor", value: 1.5, unit: "kW" }],
+                    right: fields("right")
+                }
+            }];
+        }
         var wrapper = document.createElement("div");
         wrapper.className += "goodwe-content-wrapper"
         
         if (this.config.username === "" || this.config.password === "") {
-            wrapper.innerHTML = "Missing configuration.";
+            wrapper.textContent = this.translate("MISSING_CONFIGURATION");
             return wrapper;
         }
 
         // Display loading while waiting for API response
         if (!this.loaded) {
-      	    wrapper.innerHTML = "Loading...";
+      	    wrapper.textContent = this.translate("LOADING");
             return wrapper;
       	}
 
@@ -184,7 +248,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         }
 
         var sTitle = document.createElement("p");
-        sTitle.innerHTML = "Vandaag: " + this.dayGeneration;
+        sTitle.textContent = this.translate("TODAY") + ": " + this.dayGeneration;
         sTitle.className += " thin normal main-title content-title";
         imgDiv.appendChild(img);
         imgDiv.appendChild(sTitle);
@@ -253,7 +317,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             wrapper.appendChild(gaugeRow);
         }
         
-        if (this.config.showInterverDetail) {
+        if (this.config.showInterverDetail && this.goodWeOptions) {
             for (let i=0; i < this.inverters.length; i++) {
                 // display additional info about our inverters in tables
                 const inverter = this.inverters[i];
@@ -266,7 +330,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 if (inverter.invert_full.status !== 1) {
                     // this inverter is offline, display a message
                     var offlineTitle = document.createElement("h2");
-                    offlineTitle.innerHTML = "Offline";
+                    offlineTitle.textContent = this.translate("OFFLINE");
                     offlineTitle.className += " thin normal no-margin content-title offline-status";
     
                     wrapper.appendChild(offlineTitle);
@@ -289,7 +353,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                     var titleTr = document.createElement("td");
                     var dataTr = document.createElement("td");
 
-                    titleTr.innerHTML = this.goodWeOptions.config.main[j].NL_title;
+                    titleTr.textContent = [this.translate("CURRENT_POWER"), this.translate("GENERATED_TODAY"), this.translate("GENERATED_TOTAL")][j] || this.fieldTitle(this.goodWeOptions.config.main[j]);
                     dataTr.innerHTML = resultsArray[j];
                     titleTr.className += " medium regular bright title-row table-cell";
                     dataTr.className += " medium regular bright title-row table-cell";
@@ -313,7 +377,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
                     var apiFieldLeft = inverter.dict.left.filter(elem => elem.key === field.API_field)[0];
 
-                    fieldtitleTr.innerHTML = field.NL_title;
+                    fieldtitleTr.textContent = this.fieldTitle(field);
                     fielddataTr.innerHTML = apiFieldLeft.value + " " + apiFieldLeft.unit;
                     fieldtitleTr.className += " medium regular bright title-row table-cell";
                     fielddataTr.className += " medium regular bright title-row table-cell";
@@ -337,7 +401,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
                     var apiField = inverter.dict.right.filter(elem => elem.key === fieldRight.API_field)[0];
 
-                    fieldRighttitleTd.innerHTML = fieldRight.NL_title;
+                    fieldRighttitleTd.textContent = this.fieldTitle(fieldRight);
                     fieldRightdataTd.innerHTML = apiField.value + " " + apiField.unit;
                     fieldRighttitleTd.className += " medium regular bright title-row table-cell";
                     fieldRightdataTd.className += " medium regular bright title-row table-cell";

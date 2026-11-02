@@ -1,0 +1,10 @@
+{
+  "CURRENT_POWER": "Aktuelle Leistung",
+  "GENERATED_TODAY": "Heute erzeugt",
+  "GENERATED_TOTAL": "Insgesamt erzeugt",
+  "MISSING_CONFIGURATION": "Konfiguration fehlt.",
+  "LOADING": "Wird geladen...",
+  "TODAY": "Heute",
+  "OFFLINE": "Offline",
+  "TEST_INVERTER": "TEST-Wechselrichter"
+}
