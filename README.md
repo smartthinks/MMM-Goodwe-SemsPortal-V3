@@ -5,9 +5,19 @@ A Solar Module for MagicMirror2 designed to integrate with a GoodWe System
   * A [MagicMirror<sup>2</sup>](https://github.com/MichMich/MagicMirror) installation
 
 ## Installation
-  1. Clone repo into MagicMirror/modules directory
-  2. Create an entry in 'config/config.js' with your username, password and powerstationId and other options.
-
+  1. In your terminal, go to your MagicMirror's Module folder:
+```
+cd ~/MagicMirror/modules
+```   
+  2. Clone repo into MagicMirror/modules directory
+```
+git clone https://github.com/smartthinks/MMM-Goodwe-SemsPortal-V3.git
+```
+  3. In the MagicMirror directory, run:
+ ```
+npm install node-fetch
+```    
+  4. Create an entry in 'config/config.js' with your username, password and powerstationId and other options.
  **Example:**
 ```
 {
@@ -36,12 +46,7 @@ A Solar Module for MagicMirror2 designed to integrate with a GoodWe System
 ```
 **Note:** Only enter your credentials in the `config.js` file. Your credentials are yours alone, _do not_ post or use it elsewhere.
 
-3. In the MagicMirror directory, run:
-```
-npm install node-fetch
-```
-
-4. Start your Magic Mirror and the module should appear.
+5. Start your Magic Mirror and the module should appear.
 
 ## Update
 ```
