@@ -44,9 +44,10 @@ npm install node-fetch
 4. Start your Magic Mirror and the module should appear.
 
 ## Update
-
+```
 cd ~/MagicMirror/modules/MMM-Goodwe-SemsPortal-V3
 git pull
+```
 Then restart MagicMirror² as Installation describes. CHANGELOG.md lists what changed and whether a config needs to change with it.
 
 ## Additional Options
