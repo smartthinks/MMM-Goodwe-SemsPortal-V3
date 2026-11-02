@@ -4,6 +4,8 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     defaults: {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
+        inverterGaugeStyle: "circle", // "circle" or "semicircle"
+        totalGaugeStyle: "circle", // "circle" or "semicircle"
     },
 
     start: async function() {
@@ -116,6 +118,42 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         }
     },
 
+    // Optional half-circle display; existing circle rendering stays available.
+    makeSemicircle: function(power, capacity, label, small) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "goodwe-semicircle" + (small ? " goodwe-semicircle--small" : "");
+        const value = Number(power);
+        const maximum = Number(capacity);
+        const ratio = Number.isFinite(value) && Number.isFinite(maximum) && maximum > 0
+            ? Math.max(0, Math.min(1, value / maximum)) : 0;
+        const colors = this.config.enableCustomGaugeColors ? (this.config.customGaugeColors || {}) : {};
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("viewBox", "0 0 220 120");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", label);
+        const addArc = function(color, progress) {
+            const path = document.createElementNS(ns, "path");
+            path.setAttribute("d", "M 20 110 A 90 90 0 0 1 200 110");
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", "30");
+            path.setAttribute("pathLength", "100");
+            if (progress !== undefined) {
+                path.setAttribute("stroke-dasharray", (progress * 100) + " 100");
+            }
+            svg.appendChild(path);
+        };
+        addArc(colors.outerCircleColor || "#f5f5f5");
+        addArc(colors.currentValueRingColor || "#1abc9c", ratio);
+        wrapper.appendChild(svg);
+        const caption = document.createElement("div");
+        caption.className = "goodwe-semicircle-value";
+        caption.textContent = label;
+        wrapper.appendChild(caption);
+        return wrapper;
+    },
+
     // Override dom generator
     getDom: function() {
         var wrapper = document.createElement("div");
@@ -206,7 +244,9 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 }
                 
                 // append the gauge to the flexbox
-                gaugeRow.appendChild(inverterWrap);
+                gaugeRow.appendChild(this.config.inverterGaugeStyle === "semicircle"
+                    ? this.makeSemicircle(Number(inverter.out_pac), Number(inverter.dict.left.find(elem => elem.key === "capacity").value) * 1000, currentPowerTitleLine, true)
+                    : inverterWrap);
             }
     
             // append our gauges at the top
@@ -345,7 +385,9 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 totalGauge.style.backgroundImage = `radial-gradient(#3a455e 0px, #3a455e 50%, transparent 50%, transparent 100%), conic-gradient(green ${value}deg, transparent 0deg)`;
             }
 
-            wrapper.appendChild(totalGauge);      
+            wrapper.appendChild(this.config.totalGaugeStyle === "semicircle"
+                ? this.makeSemicircle(this.currentPowerTotal, this.totalCapacity, this.currentPowerTitle, false)
+                : totalGauge);      
         }
 
         // return our document

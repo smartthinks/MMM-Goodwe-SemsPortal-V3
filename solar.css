@@ -105,3 +105,35 @@
 	justify-content: end;
 	margin-bottom: 0.25rem;
 }
+/* Optional half-circle gauge. */
+.goodwe-content-wrapper .goodwe-semicircle {
+    width: 110px;
+    max-width: 100%;
+    align-self: center;
+    text-align: center;
+    margin-top: 8px;
+}
+.goodwe-content-wrapper .goodwe-semicircle svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.goodwe-content-wrapper .goodwe-semicircle-value {
+    display: inline-block;
+    background: #fff;
+    color: #888;
+    border-radius: 20px;
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 12px;
+    line-height: 18px;
+}
+.goodwe-content-wrapper .goodwe-semicircle--small {
+    width: 110px;
+}
+.goodwe-content-wrapper .goodwe-semicircle--small .goodwe-semicircle-value {
+    min-width: 0;
+    font-size: 12px;
+    line-height: 18px;
+    padding: 0 8px;
+}
