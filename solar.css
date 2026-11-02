@@ -17,21 +17,17 @@
 	font-size: 20px;
 	margin: 0px;
 }
-
 .no-margin {
 	margin: 0;
 }
-
 .solar-width {
 	width: 100%;
 }
-
 .goodwe-content-wrapper {
 	display: flex;
 	flex-direction: column;
 	max-width: 20rem;
 }
-
 .power-div {
 	width: 5rem;
     height: 24px;
@@ -41,7 +37,6 @@
 	align-self: center;
 	text-align: center;
 }
-
 .content-title {
 	font-family: var(--font-primary), Arial, Helvetica, sans-serif;
 	font-weight: 300;
@@ -50,7 +45,6 @@
 	text-align: left;
 	margin-top: 0.5rem;
 }
-
 .main-title {
 	display: inline;
 	margin: 0px 0px 0px 15px;
@@ -59,12 +53,10 @@
 .offline-status {
 	color: white;
 }
-
 .title-row {
 	font-size: 0.65rem;
 	text-align: left;
 }
-
 .ring {
 	position: relative;
 	width: 4rem;
@@ -76,18 +68,15 @@
 	border-style: none;
 	font-size: 0.625rem;
 }
-
 .ring--small {
 	width: 3rem;
 	height: 3rem;
 }
-
 .ring--total {
 	margin-top: 0.25rem;
 	margin-left: 3.5rem;
 	align-self: flex-end;
-}
-    
+}   
 .ring-value {
 	display: inline-block;
 	position: absolute;
@@ -97,7 +86,6 @@
 	text-align: center;
 	color: white;
 }
-  
 .gauge-box {
 	display: flex;
 	flex-direction: row;
@@ -105,7 +93,6 @@
 	justify-content: end;
 	margin-bottom: 0.25rem;
 }
-/* Optional half-circle gauge. */
 .goodwe-content-wrapper .goodwe-semicircle {
     width: 110px;
     max-width: 100%;

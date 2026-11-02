@@ -6,5 +6,21 @@
   "LOADING": "Wird geladen...",
   "TODAY": "Heute",
   "OFFLINE": "Offline",
-  "TEST_INVERTER": "TEST-Wechselrichter"
+  "TEST_INVERTER": "TEST-Wechselrichter",
+  "FIELD_dmDeviceType": "Gerätetyp",
+  "FIELD_serialNum": "Seriennummer",
+  "FIELD_laCheckcode": "Prüfcode",
+  "FIELD_capacity": "Nennleistung",
+  "FIELD_laConnected": "Verbunden seit",
+  "FIELD_InverterPowerOfPlantMonitor": "Leistung",
+  "FIELD_acVacVol": "Wechselspannung",
+  "FIELD_acCurrent": "Wechselstrom",
+  "FIELD_acFrequency": "AC-Frequenz",
+  "FIELD_innerTemp": "Innentemperatur",
+  "FIELD_dcVandC1": "DC-Spannung/Strom 1",
+  "FIELD_dcVandC2": "DC-Spannung/Strom 2",
+  "FIELD_lab_GFCI": "Fehlerstrom (GFCI)",
+  "FIELD_lab_ISO": "Isolationswiderstand",
+  "FIELD_lab_pf": "Leistungsfaktor",
+  "FIELD_lab_reactiveP": "Blindleistung"
 }

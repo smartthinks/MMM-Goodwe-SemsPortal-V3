@@ -5,6 +5,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
         testMode: false,
+        totalCapacity: 5600,
         inverterGaugeStyle: "circle", // "circle" or "semicircle"
         totalGaugeStyle: "circle", // "circle" or "semicircle"
     },
@@ -21,11 +22,11 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         this.loaded = false;
         this.dayGeneration = 0;
         this.invertersOffline = false;
-        this.customGaugeColors = this.config.customGaugeColors;
+        this.customGaugeColors = { innerCircleColor: "#3a455e", outerCircleColor: "transparent", currentValueRingColor: "green", ...(this.config.customGaugeColors || {}) };
         this.goodWeOptions = null;
 
-        if (this.config.totalCapacity !== 0) {
-            this.totalCapacity = this.config.totalCapacity;
+        if (Number(this.config.totalCapacity) > 0) {
+            this.totalCapacity = Number(this.config.totalCapacity);
         }
 
         if (this.config.updateIntervalMinutes >= 1) {
@@ -34,7 +35,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         }
 
         // get our token so that we can request our data
-        this.authenticateUser();
+        if (!this.config.testMode) this.authenticateUser();
         this.loadGoodWeOptions();
 
         if (this.config.basicHeader) {
@@ -64,34 +65,11 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     },
 
     // Follow the global MagicMirror language for detail labels as well.
-    germanFieldTitle: function(field) {
-        const labels = {
-            capacity: "Nennleistung:",
-            InverterPowerOfPlantMonitor: "Aktuelle Leistung:",
-            serialNum: "Seriennummer:",
-            dmDeviceType: "Gerätetyp:",
-            laCheckcode: "Prüfcode:",
-            innerTemp: "Innentemperatur:"
-        };
-        return labels[field.API_field] || field.EN_title || field.name;
-    },
-
-    frenchFieldTitle: function(field) {
-        const labels = {
-            capacity: "Puissance nominale :",
-            InverterPowerOfPlantMonitor: "Puissance actuelle :",
-            serialNum: "Numéro de série :",
-            dmDeviceType: "Type d’appareil :",
-            laCheckcode: "Code de vérification :",
-            innerTemp: "Température intérieure :"
-        };
-        return labels[field.API_field] || field.EN_title || field.name;
-    },
-
     fieldTitle: function(field) {
-        const language = String((typeof config !== "undefined" && config.language) || "en").toLowerCase().split(/[-_]/)[0];
-        return (language === "nl" ? field.NL_title : language === "de" ? (field.DE_title || this.germanFieldTitle(field)) : language === "fr" ? (field.FR_title || this.frenchFieldTitle(field)) : field.EN_title)
-            || field.EN_title || field.NL_title || field.name || field.API_field || "";
+        const key = "FIELD_" + field.API_field;
+        const label = this.translate(key);
+        // Unknown custom fields keep their supplied English name.
+        return label !== key ? label : (field.EN_title || field["EN-title"] || field.name || field.API_field || "");
     },
 
     authenticateUser: function() {
@@ -108,6 +86,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
     //Contact node helper for solar data
     getSolarData: function() {
+        if (this.config.testMode) return;
         Log.info("SolarApp: getting data");
 
         this.sendSocketNotification("GET_SOLAR", {
@@ -118,6 +97,8 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     // Handle node helper response
     socketNotificationReceived: function(notification, payload) {
         if (notification === "SOLAR_DATA") {
+            if (this.config.testMode) return;
+            this.inverters = [];
             var currentPower = 0;
 
             for (let i=0; i < payload.inverter.length; i++) {
@@ -142,8 +123,8 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             this.currentPowerTotal = currentPower;
 
             if (payload.kpi.power < 1) {
-                // convert to Watt if it is a small number in kW
-                this.dayGeneration = (payload.kpi.power * 1000).toFixed(0).toString() + " W"
+                // Energy below 1 kWh is displayed in Wh.
+                this.dayGeneration = (payload.kpi.power * 1000).toFixed(0).toString() + " Wh";
             } else {
                 //this.dayGeneration = payload.kpi.power + " kWh";
                 this.dayGeneration = Number(payload.kpi.power).toFixed(2) + " kWh";
@@ -223,7 +204,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         var wrapper = document.createElement("div");
         wrapper.className += "goodwe-content-wrapper"
         
-        if (this.config.username === "" || this.config.password === "") {
+        if (!this.config.testMode && (!this.config.username || !this.config.password)) {
             wrapper.textContent = this.translate("MISSING_CONFIGURATION");
             return wrapper;
         }
@@ -291,8 +272,8 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 gaugeInverter.appendChild(maskWrap);
     
                 // calculate the percentage
-                const calculation = (parseInt(currentPower) / parseInt(capacity)) * 360;
-                var degree = Math.round(calculation);
+                const calculation = (Number(currentPower) / Number(capacity)) * 360;
+                var degree = Number.isFinite(calculation) ? Math.max(0, Math.min(360, Math.round(calculation))) : 0;
     
                 if (degree >= 360) {
                     // 360 is our max. degree and may not be proceeded.
@@ -378,7 +359,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                     var apiFieldLeft = inverter.dict.left.filter(elem => elem.key === field.API_field)[0];
 
                     fieldtitleTr.textContent = this.fieldTitle(field);
-                    fielddataTr.innerHTML = apiFieldLeft.value + " " + apiFieldLeft.unit;
+                    fielddataTr.textContent = apiFieldLeft ? apiFieldLeft.value + " " + (apiFieldLeft.unit || "") : "—";
                     fieldtitleTr.className += " medium regular bright title-row table-cell";
                     fielddataTr.className += " medium regular bright title-row table-cell";
 
@@ -402,7 +383,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                     var apiField = inverter.dict.right.filter(elem => elem.key === fieldRight.API_field)[0];
 
                     fieldRighttitleTd.textContent = this.fieldTitle(fieldRight);
-                    fieldRightdataTd.innerHTML = apiField.value + " " + apiField.unit;
+                    fieldRightdataTd.textContent = apiField ? apiField.value + " " + (apiField.unit || "") : "—";
                     fieldRighttitleTd.className += " medium regular bright title-row table-cell";
                     fieldRightdataTd.className += " medium regular bright title-row table-cell";
 
@@ -435,8 +416,8 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             gaugeDiv.appendChild(maskDiv);
 
             // calculate percentage
-            const math = (parseInt(this.currentPowerTotal) / parseInt(this.totalCapacity)) * 360;
-            var value = Math.round(math);
+            const math = (Number(this.currentPowerTotal) / Number(this.totalCapacity)) * 360;
+            var value = Number.isFinite(math) ? Math.max(0, Math.min(360, Math.round(math))) : 0;
 
             if (value >= 360) {
                 value = 360;

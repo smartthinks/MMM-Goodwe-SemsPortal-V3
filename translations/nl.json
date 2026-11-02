@@ -6,5 +6,21 @@
   "LOADING": "Laden...",
   "TODAY": "Vandaag",
   "OFFLINE": "Offline",
-  "TEST_INVERTER": "TEST omvormer"
+  "TEST_INVERTER": "TEST omvormer",
+  "FIELD_dmDeviceType": "Apparaattype",
+  "FIELD_serialNum": "Serienummer",
+  "FIELD_laCheckcode": "Controlecode",
+  "FIELD_capacity": "Nominaal vermogen",
+  "FIELD_laConnected": "Verbonden sinds",
+  "FIELD_InverterPowerOfPlantMonitor": "Vermogen",
+  "FIELD_acVacVol": "Wisselspanning",
+  "FIELD_acCurrent": "Wisselstroom",
+  "FIELD_acFrequency": "AC-frequentie",
+  "FIELD_innerTemp": "Binnentemperatuur",
+  "FIELD_dcVandC1": "DC-spanning/stroom 1",
+  "FIELD_dcVandC2": "DC-spanning/stroom 2",
+  "FIELD_lab_GFCI": "Aardlekstroom (GFCI)",
+  "FIELD_lab_ISO": "Isolatieweerstand",
+  "FIELD_lab_pf": "Vermogensfactor",
+  "FIELD_lab_reactiveP": "Reactief vermogen"
 }

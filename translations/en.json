@@ -6,5 +6,21 @@
   "LOADING": "Loading...",
   "TODAY": "Today",
   "OFFLINE": "Offline",
-  "TEST_INVERTER": "TEST inverter"
+  "TEST_INVERTER": "TEST inverter",
+  "FIELD_dmDeviceType": "Device type",
+  "FIELD_serialNum": "Serial number",
+  "FIELD_laCheckcode": "Check code",
+  "FIELD_capacity": "Rated power",
+  "FIELD_laConnected": "Connected since",
+  "FIELD_InverterPowerOfPlantMonitor": "Power",
+  "FIELD_acVacVol": "AC voltage",
+  "FIELD_acCurrent": "AC current",
+  "FIELD_acFrequency": "AC frequency",
+  "FIELD_innerTemp": "Internal temperature",
+  "FIELD_dcVandC1": "DC voltage/current 1",
+  "FIELD_dcVandC2": "DC voltage/current 2",
+  "FIELD_lab_GFCI": "GFCI",
+  "FIELD_lab_ISO": "Insulation resistance",
+  "FIELD_lab_pf": "Power factor",
+  "FIELD_lab_reactiveP": "Reactive power"
 }

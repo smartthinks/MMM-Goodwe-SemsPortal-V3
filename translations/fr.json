@@ -6,5 +6,21 @@
   "LOADING": "Chargement...",
   "TODAY": "Aujourd’hui",
   "OFFLINE": "Hors ligne",
-  "TEST_INVERTER": "Onduleur TEST"
+  "TEST_INVERTER": "Onduleur TEST",
+  "FIELD_dmDeviceType": "Type d’appareil",
+  "FIELD_serialNum": "Numéro de série",
+  "FIELD_laCheckcode": "Code de vérification",
+  "FIELD_capacity": "Puissance nominale",
+  "FIELD_laConnected": "Connecté depuis",
+  "FIELD_InverterPowerOfPlantMonitor": "Puissance",
+  "FIELD_acVacVol": "Tension alternative",
+  "FIELD_acCurrent": "Courant alternatif",
+  "FIELD_acFrequency": "Fréquence CA",
+  "FIELD_innerTemp": "Température interne",
+  "FIELD_dcVandC1": "Tension/courant CC 1",
+  "FIELD_dcVandC2": "Tension/courant CC 2",
+  "FIELD_lab_GFCI": "Courant de fuite (GFCI)",
+  "FIELD_lab_ISO": "Résistance d’isolement",
+  "FIELD_lab_pf": "Facteur de puissance",
+  "FIELD_lab_reactiveP": "Puissance réactive"
 }
