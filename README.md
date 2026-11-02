@@ -23,7 +23,7 @@ A Solar Module for MagicMirror2 designed to integrate with a GoodWe System
     showBottomTotalGauge: true, // Show the large gauge at the bottom
     showInterverDetail: true, // Show the details of the inverters
     enableCustomGaugeColors: false, // give the gauges your own color, use hex codes or keywords see (https://www.w3.org/wiki/CSS/Properties/color/keywords)
-	testMode: false, // true = testmode, false = Real time
+	testMode: false, // true = testmode, false = live data
 	showInverterGauges: true,
 	inverterGaugeStyle: "circle",  // give the gauges "circle" , "semicircle"
 	showBottomTotalGauge: true,
