@@ -21,7 +21,8 @@ git pull --ff-only
 ```
 
 Gebruik één configuratieblok met `module: "MMM-Goodwe-SemsPortal-V3"`.
-De aparte login wordt hieronder uitgelegd; verwijder daarna de accountvelden uit `config/config.js`.
+**Na deze update: [stel de aparte login in](#echte-gegevens-apart-inlogbestand).**
+Gebruikersnaam en wachtwoord worden niet meer uit `config/config.js` gelezen. Zet je accountgegevens in het onderstaande inlogbestand voordat je live gaat.
 
 ## Eerst testen zonder inloggegevens
 
@@ -67,6 +68,11 @@ regelen de afzonderlijke regels. De bestaande dagopbrengst blijft staan.
 
 ## Echte gegevens: apart inlogbestand
 
+### 1. Maak het inlogbestand op de Pi
+
+Gebruik hetzelfde GoodWe-/SEMS-account waarmee je in de SEMS-app inlogt.
+Neem bij een bestaande installatie `username`, `password` en `powerstationId` over uit je huidige GoodWe-configuratie.
+
 Voer op de Pi uit als dezelfde gebruiker die MagicMirror start:
 
 ```bash
@@ -77,7 +83,10 @@ chmod 600 ~/.config/magicmirror/goodwe.json
 nano ~/.config/magicmirror/goodwe.json
 ```
 
-Zet hierin je eigen gegevens:
+### 2. Vul je eigen gegevens in
+
+Vervang de drie voorbeeldwaarden door je eigen gegevens. Gebruik je gewone SEMS-wachtwoord; de module verwerkt dit zelf voor de login.
+Het meegeleverde [credentials.example.json](credentials.example.json) laat dezelfde structuur zien:
 
 ```json
 {
@@ -87,15 +96,34 @@ Zet hierin je eigen gegevens:
 }
 ```
 
+Sla in nano op met **Ctrl+O**, druk op **Enter** en sluit af met **Ctrl+X**.
+
 Dit bestand hoort buiten de modulemap en buiten GitHub. De locatie gebruikt de thuismap van
 de gebruiker die MagicMirror start. Bij een dienst onder een andere gebruiker geldt diens thuismap.
 Het bestand is beschermd met bestandsrechten, niet versleuteld.
 
+### 3. Pas de MagicMirror-configuratie aan
+
 De module leest `username`, `password` en `powerstationId` uit dit aparte bestand.
-Verwijder die drie velden uit het configuratieblok van de module.
-Zet `testMode: false` en herstart MagicMirror.
+Verwijder die drie velden uit het configuratieblok van de module in `~/MagicMirror/config/config.js`.
+Behoud je overige instellingen en zet in het bestaande blok:
+
+```js
+module: "MMM-Goodwe-SemsPortal-V3",
+// Binnen config:
+testMode: false,
+```
+
+Dit zijn alleen de aan te passen regels, geen volledig configuratieblok. Het volledige voorbeeld staat hierboven.
+
+### 4. Herstart en controleer
+
+Herstart MagicMirror op de manier waarop je het normaal start (bijvoorbeeld `pm2 restart mm` als jouw PM2-proces `mm` heet).
+De fictieve testgegevens en het testlabel moeten verdwijnen; de module haalt nu gegevens van jouw installatie op.
 Vergelijk de dag-, week-, maand-, jaar- en totaalcijfers met de SEMS-app.
 Er is geen UUID uit de browser nodig.
+
+### Optioneel: omgevingsvariabelen
 
 Optioneel: `GOODWE_USERNAME`, `GOODWE_PASSWORD` en `GOODWE_POWERSTATION_ID` als server-omgevingsvariabelen kunnen het bestand vervangen.
 Gebruikersnaam en wachtwoord moeten dan beide aanwezig zijn. Gebruik ook `GOODWE_POWERSTATION_ID` voor het station.
