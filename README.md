@@ -14,6 +14,12 @@ A MagicMirror² module for monitoring a GoodWe solar installation through SEMS+.
 - English, Dutch, German and French interface translations.
 - Server-side login using a separate credentials file.
 
+## Screenshot
+
+![GoodWe module running on a Raspberry Pi](images/GoodweV3.jpg)
+
+*Screenshot from a Raspberry Pi showing demonstration data.*
+
 ## Requirements
 
 - A working [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror) installation.
@@ -30,15 +36,6 @@ Run the following commands from the MagicMirror modules directory:
 cd ~/MagicMirror/modules
 git clone https://github.com/smartthinks/MMM-Goodwe-SemsPortal-V3.git
 ```
-
-The module directory and main JavaScript file must be named:
-
-```text
-MMM-Goodwe-SemsPortal-V3/
-└── MMM-Goodwe-SemsPortal-V3.js
-```
-
-For a ZIP installation, extract the archive and rename its top-level directory to `MMM-Goodwe-SemsPortal-V3` before placing it in the modules directory.
 
 ## Account setup
 
@@ -77,8 +74,6 @@ The file format is also available in [credentials.example.json](credentials.exam
 Keep the credentials file outside the module directory and outside GitHub. Its contents are protected by file permissions, not encryption. The default path is relative to the home directory of the user running MagicMirror. A service running as another user will use that user's home directory.
 
 ### Configure MagicMirror
-
-Add the following entry to the `modules` array in `~/MagicMirror/config/config.js`. If an entry already exists, update it instead of adding another one.
 
 ```js
 {

@@ -1,8 +1,8 @@
 {
   "name": "mmm-goodwe-semsportal-v3",
-  "version": "0.2.4",
+  "version": "3.0.2",
   "private": true,
-  "description": "Experimental separate credentials and energy totals for MagicMirror",
+  "description": "GoodWe SEMS+ solar monitoring for MagicMirror",
   "license": "MIT",
   "engines": {
     "node": ">=22"

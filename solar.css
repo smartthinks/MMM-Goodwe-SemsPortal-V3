@@ -32,6 +32,12 @@
 	max-width: 20rem;
 }
 
+/* Center the constrained block within full-width MagicMirror center regions. */
+.region.center .goodwe-content-wrapper {
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .power-div {
 	width: 5rem;
     height: 24px;
