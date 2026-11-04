@@ -17,17 +17,21 @@
 	font-size: 20px;
 	margin: 0px;
 }
+
 .no-margin {
 	margin: 0;
 }
+
 .solar-width {
 	width: 100%;
 }
+
 .goodwe-content-wrapper {
 	display: flex;
 	flex-direction: column;
 	max-width: 20rem;
 }
+
 .power-div {
 	width: 5rem;
     height: 24px;
@@ -37,6 +41,7 @@
 	align-self: center;
 	text-align: center;
 }
+
 .content-title {
 	font-family: var(--font-primary), Arial, Helvetica, sans-serif;
 	font-weight: 300;
@@ -45,6 +50,7 @@
 	text-align: left;
 	margin-top: 0.5rem;
 }
+
 .main-title {
 	display: inline;
 	margin: 0px 0px 0px 15px;
@@ -53,10 +59,12 @@
 .offline-status {
 	color: white;
 }
+
 .title-row {
 	font-size: 0.65rem;
 	text-align: left;
 }
+
 .ring {
 	position: relative;
 	width: 4rem;
@@ -68,15 +76,18 @@
 	border-style: none;
 	font-size: 0.625rem;
 }
+
 .ring--small {
 	width: 3rem;
 	height: 3rem;
 }
+
 .ring--total {
 	margin-top: 0.25rem;
 	margin-left: 3.5rem;
 	align-self: flex-end;
-}   
+}
+    
 .ring-value {
 	display: inline-block;
 	position: absolute;
@@ -86,6 +97,7 @@
 	text-align: center;
 	color: white;
 }
+  
 .gauge-box {
 	display: flex;
 	flex-direction: row;
@@ -93,6 +105,7 @@
 	justify-content: end;
 	margin-bottom: 0.25rem;
 }
+/* Optional half-circle gauge. */
 .goodwe-content-wrapper .goodwe-semicircle {
     width: 110px;
     max-width: 100%;
@@ -124,3 +137,28 @@
     line-height: 18px;
     padding: 0 8px;
 }
+
+.goodwe-content-wrapper .goodwe-energy-totals { margin-top: 12px; width: 100%; font-size: 16px; }
+.goodwe-content-wrapper .goodwe-energy-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    column-gap: 1.25rem;
+    align-items: baseline;
+    padding: 4px 0;
+    text-align: left;
+}
+.goodwe-content-wrapper .goodwe-energy-row span:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+.goodwe-content-wrapper .goodwe-energy-row span:last-child { color: #fff; font-variant-numeric: tabular-nums; }
+.goodwe-content-wrapper .goodwe-test-badge { color: #f0c674; font-size: 12px; margin-bottom: 8px; }
+.goodwe-content-wrapper .goodwe-test-error { color: #f0c674; font-size: 14px; margin-bottom: 8px; }
+
+.goodwe-content-wrapper .goodwe-alarms { width: 100%; margin-top: 14px; font-size: 14px; line-height: 1.35; text-align: left; overflow-wrap: anywhere; }
+.goodwe-content-wrapper .goodwe-alarm-title { color: #fff; margin-bottom: 6px; }
+.goodwe-content-wrapper .goodwe-alarm-item { border-left: 3px solid #999; padding-left: 8px; margin: 8px 0; }
+.goodwe-content-wrapper .goodwe-alarm-active { border-color: #e57373; }
+.goodwe-content-wrapper .goodwe-alarm-resolved { border-color: #1abc9c; }
+.goodwe-content-wrapper .goodwe-alarm-meta { color: #aaa; font-size: 12px; }
+.goodwe-content-wrapper .goodwe-alarm-notice { color: #f0c674; }

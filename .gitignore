@@ -1,0 +1,5 @@
+node_modules/
+goodwe.json
+credentials.json
+.env
+*.env

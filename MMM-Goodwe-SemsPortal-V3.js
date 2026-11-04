@@ -5,6 +5,14 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
         testMode: false,
+        showAlarms: true,
+        showResolvedAlarms: false,
+        alarmLimit: 3,
+        showEnergyTotals: true,
+        showWeekYield: true,
+        showMonthYield: true,
+        showYearYield: true,
+        showLifetimeYield: true,
         totalCapacity: 5600,
         inverterGaugeStyle: "circle", // "circle" or "semicircle"
         totalGaugeStyle: "circle", // "circle" or "semicircle"
@@ -20,7 +28,11 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         this.currentPowerTotal = 0;
         this.totalCapacity = 5600;
         this.loaded = false;
-        this.dayGeneration = 0;
+        this.dayGeneration = "—";
+        this.energyTotals = {};
+        this.errorCode = null;
+        this.alarms = [];
+        this.alarmState = "loading";
         this.invertersOffline = false;
         this.customGaugeColors = { innerCircleColor: "#3a455e", outerCircleColor: "transparent", currentValueRingColor: "green", ...(this.config.customGaugeColors || {}) };
         this.goodWeOptions = null;
@@ -48,6 +60,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             self.getSolarData();
             self.updateDom();
         }, this.config.refInterval);
+        setInterval(() => this.getAlarmData(), 5 * 60 * 1000);
     },
 
     //Import additional CSS Styles
@@ -94,10 +107,77 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         });
     },
 
+    getAlarmData: function() {
+        if (this.config.testMode || !this.config.showAlarms) return;
+        const language = typeof config !== "undefined" ? config.language : "en";
+        this.sendSocketNotification("GET_ALARMS", { config: this.config, language });
+    },
+
+    visibleAlarms: function() {
+        const alarms = Array.isArray(this.alarms) ? this.alarms : [];
+        return this.config.showResolvedAlarms ? alarms : alarms.filter(alarm => alarm.state !== "resolved");
+    },
+
+    hasAlarmMessages: function() {
+        return this.config.showAlarms && this.visibleAlarms().length > 0;
+    },
+
+    makeAlarmOverview: function() {
+        const section = document.createElement("div");
+        section.className = "goodwe-alarms";
+        const add = (className, label) => {
+            const el = document.createElement("div");
+            el.className = className;
+            el.textContent = label;
+            section.appendChild(el);
+        };
+        add("goodwe-alarm-title", this.translate("ALARMS_TITLE"));
+        if (this.alarmState !== "ok") {
+            add("goodwe-alarm-notice", this.translate(this.alarmState === "error" ? "ALARMS_ERROR" : "ALARMS_LOADING"));
+        }
+        const limit = Math.max(1, Math.min(15, Math.floor(Number(this.config.alarmLimit)) || 3));
+        for (const alarm of this.visibleAlarms().slice(0, limit)) {
+            const row = document.createElement("div");
+            row.className = "goodwe-alarm-item goodwe-alarm-" + alarm.state;
+            const device = document.createElement("div");
+            device.className = "goodwe-alarm-meta";
+            const matched = this.inverters.find(inverter => inverter.dict?.left?.some(field => field.key === "serialNum" && field.value === alarm.deviceSerial));
+            const name = alarm.deviceName || matched?.name || "";
+            const identity = name && alarm.deviceSerial && name !== alarm.deviceSerial
+                ? name + " (" + alarm.deviceSerial + ")" : name || alarm.deviceSerial;
+            device.textContent = identity ? this.translate("ALARM_DEVICE") + ": " + identity : this.translate("ALARM_DEVICE_UNKNOWN");
+            row.appendChild(device);
+            const title = document.createElement("div");
+            title.textContent = alarm.message || this.translate("ALARM_UNKNOWN");
+            const status = document.createElement("div");
+            status.className = "goodwe-alarm-meta";
+            const key = { active: "ALARM_ACTIVE", resolved: "ALARM_RESOLVED" }[alarm.state] || "ALARM_STATE_UNKNOWN";
+            status.textContent = this.translate(key) + (alarm.time ? " · " + alarm.time : "");
+            row.appendChild(title);
+            row.appendChild(status);
+            section.appendChild(row);
+        }
+        return section;
+    },
+
+    numberLocale: function() {
+        const language = typeof config !== "undefined" ? config.language : "en";
+        return { nl: "nl-NL", en: "en-GB", de: "de-DE", fr: "fr-FR" }[String(language || "en").toLowerCase()] || "en-GB";
+    },
+
+    formatEnergy: function(value, compact = false) {
+        if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+        const wh = compact && value < 1;
+        return new Intl.NumberFormat(this.numberLocale(), { maximumFractionDigits: wh ? 0 : 2 })
+            .format(wh ? value * 1000 : value) + (wh ? " Wh" : " kWh");
+    },
+
     // Handle node helper response
     socketNotificationReceived: function(notification, payload) {
         if (notification === "SOLAR_DATA") {
             if (this.config.testMode) return;
+            this.errorCode = null;
+            this.energyTotals = payload.energy || {};
             this.inverters = [];
             var currentPower = 0;
 
@@ -122,19 +202,27 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
             this.currentPowerTotal = currentPower;
 
-            if (payload.kpi.power < 1) {
-                // Energy below 1 kWh is displayed in Wh.
-                this.dayGeneration = (payload.kpi.power * 1000).toFixed(0).toString() + " Wh";
-            } else {
-                //this.dayGeneration = payload.kpi.power + " kWh";
-                this.dayGeneration = Number(payload.kpi.power).toFixed(2) + " kWh";
-            }
+            this.dayGeneration = this.formatEnergy(payload.energy?.today ?? payload.kpi?.power, true);
 
             this.loaded = true;
             this.updateDom(1000);
+        } else if (notification === "GOODWE_ERROR") {
+            if (this.config.testMode) return;
+            this.errorCode = ["CREDENTIALS_ERROR", "MISSING_CONFIGURATION"].includes(payload) ? payload : "CONNECTION_ERROR";
+            this.updateDom();
         } else if (notification === "LOGIN_USER") {
             Log.info(`%c[SEMS-API][OK] - Authenticated`, "color: green");
             this.getSolarData();
+            this.getAlarmData();
+        } else if (notification === "ALARM_DATA") {
+            if (this.config.testMode) return;
+            this.alarms = Array.isArray(payload) ? payload : [];
+            this.alarmState = "ok";
+            this.updateDom();
+        } else if (notification === "ALARM_ERROR") {
+            if (this.config.testMode) return;
+            this.alarmState = "error";
+            this.updateDom();
         } else if (notification === "LOAD_OPTIONS") {
             this.goodWeOptions = payload;
         }
@@ -184,7 +272,13 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             this.invertersOffline = false;
             this.currentPowerTotal = 1500;
             this.currentPowerTitle = "1.50 kW";
-            this.dayGeneration = "4.20 kWh";
+            this.alarmState = "ok";
+            this.alarms = [
+                { message: this.translate("TEST_ALARM_ACTIVE"), deviceName: this.translate("TEST_INVERTER") + " 1", time: "12:00", state: "active" },
+                { message: this.translate("TEST_ALARM_RESOLVED"), deviceName: this.translate("TEST_INVERTER") + " 2", time: "09:00", state: "resolved" }
+            ];
+            this.energyTotals = { today: 4.2, week: 28.6, month: 124.8, year: 2450.5, total: 12840.7 };
+            this.dayGeneration = this.formatEnergy(this.energyTotals.today, true);
             this.totalCapacity = capacity;
             const fields = (side) => (this.goodWeOptions?.config?.[side] || []).map(field => ({
                 key: field.API_field, value: "—", unit: ""
@@ -204,14 +298,29 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         var wrapper = document.createElement("div");
         wrapper.className += "goodwe-content-wrapper"
         
-        if (!this.config.testMode && (!this.config.username || !this.config.password)) {
-            wrapper.textContent = this.translate("MISSING_CONFIGURATION");
-            return wrapper;
+        if (!this.config.testMode && this.errorCode) {
+            const error = document.createElement("div");
+            error.className = "goodwe-test-error";
+            error.textContent = this.translate(this.errorCode);
+            wrapper.appendChild(error);
+            if (!this.loaded) {
+                if (this.hasAlarmMessages()) wrapper.appendChild(this.makeAlarmOverview());
+                return wrapper;
+            }
+        }
+        if (this.config.testMode) {
+            const badge = document.createElement("div");
+            badge.className = "goodwe-test-badge";
+            badge.textContent = this.translate("TEST_MODE");
+            wrapper.appendChild(badge);
         }
 
         // Display loading while waiting for API response
         if (!this.loaded) {
-      	    wrapper.textContent = this.translate("LOADING");
+            const loading = document.createElement("div");
+            loading.textContent = this.translate("LOADING");
+            wrapper.appendChild(loading);
+            if (this.hasAlarmMessages()) wrapper.appendChild(this.makeAlarmOverview());
             return wrapper;
       	}
 
@@ -324,8 +433,8 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     
                 const resultsArray = [];
                 resultsArray[0] = inverter.d.output_power;
-                resultsArray[1] = inverter.eday + " kWh";
-                resultsArray[2] = inverter.etotal + " kWh";
+                resultsArray[1] = this.formatEnergy(inverter.eday);
+                resultsArray[2] = this.formatEnergy(inverter.etotal);
     
                 for (let j=0; j < this.goodWeOptions.config.main.length; j++) {
                     if (this.goodWeOptions.config.main[j].enabled === false) continue;
@@ -434,6 +543,54 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 ? this.makeSemicircle(this.currentPowerTotal, this.totalCapacity, this.currentPowerTitle, false)
                 : totalGauge);      
         }
+
+        if (this.config.showEnergyTotals) {
+            const totals = document.createElement("table");
+            totals.className = "goodwe-yield-table";
+            totals.style.width = "100%";
+            totals.style.marginTop = "12px";
+            totals.style.fontSize = "16px";
+            totals.style.borderCollapse = "collapse";
+            const body = document.createElement("tbody");
+            totals.appendChild(body);
+            for (const [setting, key, label] of [
+                ["showWeekYield", "week", "YIELD_WEEK"],
+                ["showMonthYield", "month", "YIELD_MONTH"],
+                ["showYearYield", "year", "YIELD_YEAR"],
+                ["showLifetimeYield", "total", "GENERATED_TOTAL"]
+            ]) {
+                if (!this.config[setting]) continue;
+                const row = document.createElement("tr");
+                row.className = "goodwe-yield-table-row";
+                const title = document.createElement("td");
+                title.textContent = this.translate(label);
+                title.style.textAlign = "left";
+                title.style.padding = "4px 16px 4px 0";
+                const formatted = this.formatEnergy(this.energyTotals[key]);
+                const known = formatted.endsWith(" kWh");
+                const value = document.createElement("td");
+                value.textContent = known ? formatted.slice(0, -4) : formatted;
+                value.style.textAlign = "right";
+                value.style.whiteSpace = "nowrap";
+                value.style.fontVariantNumeric = "tabular-nums";
+                value.style.padding = "4px 0";
+                value.style.color = "#fff";
+                const unit = document.createElement("td");
+                unit.textContent = known ? "kWh" : "";
+                unit.style.textAlign = "left";
+                unit.style.whiteSpace = "nowrap";
+                unit.style.padding = "4px 0 4px 8px";
+                unit.style.width = "1%";
+                unit.style.color = "#fff";
+                row.appendChild(title);
+                row.appendChild(value);
+                row.appendChild(unit);
+                body.appendChild(row);
+            }
+            wrapper.appendChild(totals);
+        }
+
+        if (this.hasAlarmMessages()) wrapper.appendChild(this.makeAlarmOverview());
 
         // return our document
         return wrapper;

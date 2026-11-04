@@ -1,0 +1,10 @@
+{
+  "name": "mmm-goodwe-semsportal-v3",
+  "version": "0.2.4",
+  "private": true,
+  "description": "Experimental separate credentials and energy totals for MagicMirror",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  }
+}
