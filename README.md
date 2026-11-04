@@ -1,79 +1,52 @@
 # MMM-Goodwe-SemsPortal-V3
 
-Versie 0.2.4: update van de bestaande module met SEMS+, vertalingen, energietellers en een apart inlogbestand. De modulenaam blijft `MMM-Goodwe-SemsPortal-V3`.
-Node.js 22 of nieuwer is vereist. Geen extra npm-pakketten nodig.
-Maak vóór het bijwerken een reservekopie van je modulemap en `config/config.js`.
+A MagicMirror² module for monitoring a GoodWe solar installation through SEMS+.
 
-## Installeren of bijwerken
+**Version: V3.0.2**
 
-Nieuwe installatie:
+## Features
+
+- Current solar power and daily energy production.
+- Weekly, monthly, yearly and lifetime energy totals.
+- Individual inverter information.
+- Circular and semicircular power gauges.
+- Alarm display with inverter identification when available.
+- English, Dutch, German and French interface translations.
+- Server-side login using a separate credentials file.
+
+## Requirements
+
+- A working [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror) installation.
+- Node.js 22 or later.
+- A GoodWe SEMS account and the power station ID for the installation.
+
+No additional npm packages are required by this module.
+
+## Installation
+
+Run the following commands from the MagicMirror modules directory:
 
 ```bash
 cd ~/MagicMirror/modules
 git clone https://github.com/smartthinks/MMM-Goodwe-SemsPortal-V3.git
 ```
 
-Bestaande installatie (na je reservekopie):
+The module directory and main JavaScript file must be named:
 
-```bash
-cd ~/MagicMirror/modules/MMM-Goodwe-SemsPortal-V3
-git pull --ff-only
+```text
+MMM-Goodwe-SemsPortal-V3/
+└── MMM-Goodwe-SemsPortal-V3.js
 ```
 
-Gebruik één configuratieblok met `module: "MMM-Goodwe-SemsPortal-V3"`.
-**Na deze update: [stel de aparte login in](#echte-gegevens-apart-inlogbestand).**
-Gebruikersnaam en wachtwoord worden niet meer uit `config/config.js` gelezen. Zet je accountgegevens in het onderstaande inlogbestand voordat je live gaat.
+For a ZIP installation, extract the archive and rename its top-level directory to `MMM-Goodwe-SemsPortal-V3` before placing it in the modules directory.
 
-## Eerst testen zonder inloggegevens
+## Account setup
 
-Bij installatie via een ZIP hernoem je de uitgepakte map naar `MMM-Goodwe-SemsPortal-V3` en plaats je die in `~/MagicMirror/modules/`. De structuur moet zijn:
-`modules/MMM-Goodwe-SemsPortal-V3/MMM-Goodwe-SemsPortal-V3.js`.
+Account credentials are stored separately from the MagicMirror display configuration. The module reads them on the server; they are not sent to the display.
 
-Maak een reservekopie van `config/config.js`. Vervang het bestaande GoodWe-configuratieblok door het onderstaande voorbeeld (voeg geen tweede exemplaar toe):
+### Create the credentials file
 
-```js
-{
-    module: "MMM-Goodwe-SemsPortal-V3",
-    disabled: false,
-    position: "bottom_right",
-    config: {
-        testMode: true,
-        totalCapacity: 7500,
-        updateIntervalMinutes: 3,
-        showInverterGauges: true,
-        inverterGaugeStyle: "circle",
-        showBottomTotalGauge: true,
-        totalGaugeStyle: "semicircle",
-        showInterverDetail: false,
-        enableCustomGaugeColors: false,
-        showAlarms: true,
-        alarmLimit: 3,
-        showEnergyTotals: true,
-        showWeekYield: true,
-        showMonthYield: true,
-        showYearYield: true,
-        showLifetimeYield: true
-    }
-},
-```
-
-Herstart MagicMirror. De teststand toont een duidelijk testlabel en fictieve gegevens:
-1.500 W, 4,2 kWh vandaag, 28,6 kWh deze week, 124,8 kWh deze maand,
-2.450,5 kWh dit jaar en 12.840,7 kWh totaal. Getalnotatie volgt de taal.
-De teststand doet geen login- of productie-aanvragen.
-
-`showEnergyTotals: false` verbergt het nieuwe overzicht. De vier andere opbrengstinstellingen
-regelen de afzonderlijke regels. De bestaande dagopbrengst blijft staan.
-`showInterverDetail` behoudt de bestaande spelling voor compatibiliteit.
-
-## Echte gegevens: apart inlogbestand
-
-### 1. Maak het inlogbestand op de Pi
-
-Gebruik hetzelfde GoodWe-/SEMS-account waarmee je in de SEMS-app inlogt.
-Neem bij een bestaande installatie `username`, `password` en `powerstationId` over uit je huidige GoodWe-configuratie.
-
-Voer op de Pi uit als dezelfde gebruiker die MagicMirror start:
+Run these commands as the same operating-system user that runs MagicMirror:
 
 ```bash
 mkdir -p ~/.config/magicmirror
@@ -83,119 +56,183 @@ chmod 600 ~/.config/magicmirror/goodwe.json
 nano ~/.config/magicmirror/goodwe.json
 ```
 
-### 2. Vul je eigen gegevens in
-
-Vervang de drie voorbeeldwaarden door je eigen gegevens. Gebruik je gewone SEMS-wachtwoord; de module verwerkt dit zelf voor de login.
-Het meegeleverde [credentials.example.json](credentials.example.json) laat dezelfde structuur zien:
+Add the following JSON and replace all three placeholder values:
 
 ```json
 {
-    "username": "JOUW_GOODWE_EMAIL",
-    "password": "JOUW_GOODWE_WACHTWOORD",
-    "powerstationId": "JOUW_POWERSTATION_ID"
+  "username": "YOUR_GOODWE_EMAIL",
+  "password": "YOUR_GOODWE_PASSWORD",
+  "powerstationId": "YOUR_POWERSTATION_ID"
 }
 ```
 
-Sla in nano op met **Ctrl+O**, druk op **Enter** en sluit af met **Ctrl+X**.
+Use the email address and password for the SEMS account. Enter the password as plain text; the module performs the processing required for authentication.
 
-Dit bestand hoort buiten de modulemap en buiten GitHub. De locatie gebruikt de thuismap van
-de gebruiker die MagicMirror start. Bij een dienst onder een andere gebruiker geldt diens thuismap.
-Het bestand is beschermd met bestandsrechten, niet versleuteld.
+The power station ID identifies the installation in SEMS. When upgrading from an earlier version, copy the existing `powerstationId` from the module configuration.
 
-### 3. Pas de MagicMirror-configuratie aan
+Save the file. In nano, press **Ctrl+O**, then **Enter**, followed by **Ctrl+X**.
 
-De module leest `username`, `password` en `powerstationId` uit dit aparte bestand.
-Verwijder die drie velden uit het configuratieblok van de module in `~/MagicMirror/config/config.js`.
-Behoud je overige instellingen en zet in het bestaande blok:
+The file format is also available in [credentials.example.json](credentials.example.json).
+
+Keep the credentials file outside the module directory and outside GitHub. Its contents are protected by file permissions, not encryption. The default path is relative to the home directory of the user running MagicMirror. A service running as another user will use that user's home directory.
+
+### Configure MagicMirror
+
+Add the following entry to the `modules` array in `~/MagicMirror/config/config.js`. If an entry already exists, update it instead of adding another one.
 
 ```js
-module: "MMM-Goodwe-SemsPortal-V3",
-// Binnen config:
-testMode: false,
+{
+  module: "MMM-Goodwe-SemsPortal-V3",
+  position: "bottom_right",
+  config: {
+    totalCapacity: 5600,
+    updateIntervalMinutes: 5,
+    showInverterGauges: true,
+    inverterGaugeStyle: "circle",
+    showBottomTotalGauge: true,
+    totalGaugeStyle: "semicircle",
+    showInterverDetail: true,
+    enableCustomGaugeColors: false,
+    showEnergyTotals: true,
+    showWeekYield: true,
+    showMonthYield: true,
+    showYearYield: true,
+    showLifetimeYield: true,
+    showAlarms: true,
+    showResolvedAlarms: false,
+    alarmLimit: 3
+  }
+},
 ```
 
-Dit zijn alleen de aan te passen regels, geen volledig configuratieblok. Het volledige voorbeeld staat hierboven.
+Set `totalCapacity` to the combined rated inverter capacity in watts.
 
-### 4. Herstart en controleer
+Do not include `username`, `password` or `powerstationId` in this configuration block. These values belong in the separate credentials file.
 
-Herstart MagicMirror op de manier waarop je het normaal start (bijvoorbeeld `pm2 restart mm` als jouw PM2-proces `mm` heet).
-De fictieve testgegevens en het testlabel moeten verdwijnen; de module haalt nu gegevens van jouw installatie op.
-Vergelijk de dag-, week-, maand-, jaar- en totaalcijfers met de SEMS-app.
-Er is geen UUID uit de browser nodig.
+Restart MagicMirror after saving the credentials and configuration.
 
-### Optioneel: omgevingsvariabelen
+### Environment variables
 
-Optioneel: `GOODWE_USERNAME`, `GOODWE_PASSWORD` en `GOODWE_POWERSTATION_ID` als server-omgevingsvariabelen kunnen het bestand vervangen.
-Gebruikersnaam en wachtwoord moeten dan beide aanwezig zijn. Gebruik ook `GOODWE_POWERSTATION_ID` voor het station.
-Bij bestandslogin kan `GOODWE_POWERSTATION_ID` alleen het station uit het bestand overschrijven. Een ander bestandspad kan via de server-omgevingsvariabele
-`GOODWE_CREDENTIALS_FILE`. Deze variabelen moeten beschikbaar zijn voor het MagicMirror-proces.
-Inloggegevens worden niet naar de schermweergave verstuurd.
+As an alternative to file-based credentials, set the following environment variables for the MagicMirror process:
 
-## Tellers en vertalingen
+| Variable | Purpose |
+| --- | --- |
+| `GOODWE_USERNAME` | SEMS account email address. |
+| `GOODWE_PASSWORD` | SEMS account password. |
+| `GOODWE_POWERSTATION_ID` | Power station ID. |
+| `GOODWE_CREDENTIALS_FILE` | Optional alternative credentials file path. |
 
-De module volgt de algemene MagicMirror-instelling `language`: nl, en, de en fr.
-Andere talen vallen terug op Engels. De energietellers komen rechtstreeks uit SEMS+:
-`proPvStatsToday`, `proPvStatsWeek`, `proPvStatsMonth`, `proPvStatsYear`, `proPvStatsTotal`.
-Dit zijn GoodWe-periodetellers; de module berekent geen terugkijkende 7/30/365 dagen.
-GoodWe bepaalt de periodegrenzen. Alle opbrengsten zijn energie in kWh, geen bedragen in euro's.
-Als een omvormer een teller mist, wordt het betreffende totaal `—`, geen gedeeltelijke som.
+When using environment-based login, both `GOODWE_USERNAME` and `GOODWE_PASSWORD` must be present. Set `GOODWE_POWERSTATION_ID` for the installation as well.
 
-`goodwe-options.json` regelt detailvelden en hun API-koppeling; labels komen uit `translations`.
-Neem eigen `enabled`-aanpassingen desgewenst over uit je bestaande optiesbestand.
-Niet alle optionele detailmetingen zijn gevuld; ontbrekende waarden worden `—`.
-Laat de volgorde van de drie `main`-velden intact: vermogen, dagopbrengst, totaalopbrengst.
+With file-based login, `GOODWE_POWERSTATION_ID` can override the station ID in the file. Environment variables must be available to the process that starts MagicMirror, including any service or process manager.
 
-## Controles en beperkingen
+## Configuration options
 
-Gecontroleerd met gesimuleerde antwoorden: alle meterstijlen, vier talen en Engelse terugval,
-login via bestand/omgeving, ongeldige inlogbestanden, twee omvormers, ontbrekende tellers,
-kommagetallen en foutmeldingen. Er zijn geen echte accountgegevens gebruikt.
-Nog niet op een Raspberry Pi of met een live GoodWe-installatie getest.
+| Option | Description |
+| --- | --- |
+| `totalCapacity` | Combined rated inverter capacity in watts. Default: `5600`. |
+| `updateIntervalMinutes` | Solar data refresh interval in minutes. Values of at least `1` override the default five-minute interval. |
+| `basicHeader` | Show the module header. Default: `false`. |
+| `showInverterGauges` | Show individual inverter gauges. Set explicitly to `true` or `false`. |
+| `inverterGaugeStyle` | Individual gauge style: `"circle"` or `"semicircle"`. Default: `"circle"`. |
+| `showBottomTotalGauge` | Show the combined power gauge. Set explicitly to `true` or `false`. |
+| `totalGaugeStyle` | Combined gauge style: `"circle"` or `"semicircle"`. Default: `"circle"`. |
+| `showInterverDetail` | Show inverter detail fields. The existing option spelling is retained for compatibility. |
+| `enableCustomGaugeColors` | Enable colors supplied through `customGaugeColors`. |
+| `showEnergyTotals` | Show the energy totals overview. Default: `true`. |
+| `showWeekYield` | Show weekly energy production. Default: `true`. |
+| `showMonthYield` | Show monthly energy production. Default: `true`. |
+| `showYearYield` | Show yearly energy production. Default: `true`. |
+| `showLifetimeYield` | Show lifetime energy production. Default: `true`. |
+| `showAlarms` | Retrieve and display alarms. Default: `true`. |
+| `showResolvedAlarms` | Include resolved alarms. Default: `false`. |
+| `alarmLimit` | Maximum displayed alarms, from `1` to `15`. Default: `3`. |
 
-## Terug naar de vorige versie
+### Custom gauge colors
 
-Stop MagicMirror, herstel de reservekopie van de modulemap en `config/config.js`, en herstart MagicMirror.
-De vorige versie gebruikt haar oorspronkelijke manier van inloggen.
+Add this object inside the module's `config` object and set `enableCustomGaugeColors: true`:
 
-## Herkomst
+```js
+customGaugeColors: {
+  innerCircleColor: "#3a455e",
+  outerCircleColor: "transparent",
+  currentValueRingColor: "#1abc9c"
+}
+```
 
-Gebaseerd op https://github.com/smartthinks/MMM-Goodwe-SemsPortal-V3; de oorspronkelijke MIT-licentie is meegeleverd.
-De extra tellers gebruiken de SEMS+-veldnamen die ook voorkomen in
-https://github.com/marcovanwoudenberg/MMM-GoodWe. De dashboard- en inlogcode van dat project is niet overgenomen.
+### Inverter detail fields
 
-## Alarmmeldingen
+Use `goodwe-options.json` to enable or disable optional detail fields by changing their `enabled` values. Restart MagicMirror after editing the file.
 
-`showAlarms: true` blijft alarmen controleren, maar toont het overzicht alleen als er meldingen zijn.
-Bij een lege lijst verdwijnen ook de kop en de tussenruimte automatisch. Ontvangen meldingen laten het overzicht weer verschijnen. `alarmLimit: 3` toont maximaal drie van de ontvangen meldingen
-(instelbaar van 1 tot 15). Vernieuwing gebeurt na de login en daarna elke vijf minuten, onafhankelijk van de productieverversing.
-Met `showAlarms: false` worden geen alarm-aanvragen gedaan.
+Keep the three `main` fields in their original order: current power, daily energy and lifetime energy. Unavailable measurements are displayed as `—`.
 
-De teststand bevat één fictieve actieve en één fictieve herstelde melding. Standaard is alleen de actieve melding zichtbaar; `showResolvedAlarms: true` toont beide.
-De live-aanvraag gebruikt de SEMS+-alarmroute `/sems-alarm/api/v2/alarm/page`, pagina 1, maximaal 15 resultaten,
-90 dagen terug en de API-selectie `status: 1`, `timeType: 1`, zoals de vergelijkingsmodule.
-De precieze betekenis van die selecties en de volledigheid moeten met jouw SEMS-account worden bevestigd.
-Dit is geen onbeperkt historisch archief of garantie dat alle storingen ontbreken.
+## Languages
 
-De interface onderscheidt actief, hersteld en onbekende status op basis van het herstelveld dat GoodWe terugstuurt.
-Bij ontbrekende statusgegevens staat er 'Status onbekend'. Een mislukte controle wordt in het overzicht als fout getoond als er eerdere meldingen zichtbaar zijn;
-eerder ontvangen meldingen kunnen dan nog zichtbaar zijn en worden als mogelijk verouderd aangeduid.
-Een lege succesvolle selectie betekent uitsluitend dat voor die aanvraag geen meldingen zijn ontvangen.
+The module follows the global MagicMirror `language` setting:
 
-Koppen en statuswoorden volgen de MagicMirror-taal. De aanvraag gebruikt die taal ook waar ondersteund.
-De eigenlijke storingstekst komt van GoodWe; een ontbrekende lokale tekst valt terug op de geleverde Engelse of algemene tekst.
-De alarmroute kan voor sommige accounts aanvullende GoodWe-vereisten hebben: dit moet live op de Pi worden getest.
+| Language | Code |
+| --- | --- |
+| English | `en` |
+| Dutch | `nl` |
+| German | `de` |
+| French | `fr` |
 
-Versie 0.2.2: alarmoverzicht automatisch verborgen zonder ontvangen meldingen.
-De vijfminutencontrole blijft doorlopen. De teststand bevat twee voorbeeldmeldingen; vanaf 0.2.4 is de herstelde melding standaard verborgen.
-Vanaf 0.2.4 worden herstelde meldingen standaard weggefilterd. Meldingen met onbekende status blijven zichtbaar, met die status expliciet vermeld.
+Other languages fall back to English. Number formatting follows the selected language.
 
-Versie 0.2.3: ook `powerstationId` staat in het aparte inlogbestand.
-Een oude `powerstationId` in de schermconfiguratie blijft als terugval werken; het aparte bestand heeft voorrang.
-In de teststand zijn de drie accountvelden niet nodig.
+## Energy totals
 
-Versie 0.2.4: omvormernaam en/of serienummer bij alarmmeldingen, wanneer ontvangen van GoodWe.
-Als geen apparaat kan worden gekoppeld, verschijnt 'Omvormer onbekend'.
-Herstelde meldingen zijn standaard verborgen; als alleen herstelde meldingen overblijven verdwijnt het hele blok.
-Optioneel `showResolvedAlarms: true` toont ook historische herstelde meldingen.
-De teststand toont standaard één actieve voorbeeldmelding voor TEST omvormer 1.
-Een herstel wordt zichtbaar bij de volgende succesvolle alarmcontrole (normaal elke vijf minuten).
+Energy values are shown in kWh. The module uses the SEMS+ period counters for today, this week, this month, this year and lifetime production.
+
+Period boundaries are determined by GoodWe. Weekly, monthly and yearly values are calendar-period counters, rather than rolling 7-, 30- or 365-day totals.
+
+If a required counter is unavailable for an inverter, the corresponding combined total is displayed as `—` instead of a partial sum.
+
+## Alarms
+
+Alarms are refreshed after login and then every five minutes, independently of the solar data refresh interval.
+
+The alarm section is hidden when no matching alarms are returned. Resolved alarms are hidden by default; set `showResolvedAlarms: true` to include them. Alarms with an unknown status remain visible and are labelled accordingly.
+
+An inverter name or serial number is displayed when provided by GoodWe. Otherwise, the module shows an unknown-inverter label.
+
+The request retrieves up to 15 results from the first page for a 90-day period, using the SEMS+ API selections `status: 1` and `timeType: 1`. Results depend on the account and the GoodWe service; an empty response does not establish that no faults exist.
+
+Interface labels follow the MagicMirror language. Alarm descriptions are supplied by GoodWe and may fall back to English or the general description.
+
+If a refresh fails while earlier alarms are displayed, those alarms may remain visible with a stale-data notice.
+
+## Updating
+
+Back up the module directory and MagicMirror configuration before updating. Preserve any local changes to `goodwe-options.json`.
+
+```bash
+cd ~/MagicMirror/modules/MMM-Goodwe-SemsPortal-V3
+git pull --ff-only
+```
+
+Restart MagicMirror after updating.
+
+### Migrating from an earlier login configuration
+
+1. Copy `username`, `password` and `powerstationId` into the separate credentials file described under [Account setup](#account-setup).
+2. Remove those fields from the module entry in `config/config.js`.
+3. Keep the module name `MMM-Goodwe-SemsPortal-V3`.
+4. Restart MagicMirror.
+
+Usernames and passwords in `config/config.js` are no longer used for login. An existing `powerstationId` there is supported as a fallback, but the separate credentials file takes priority.
+
+## Troubleshooting
+
+| Message or symptom | Check |
+| --- | --- |
+| Credentials error | Confirm that the credentials file contains valid JSON, includes a username and password, and is readable by the user running MagicMirror. |
+| Missing configuration | Check that the power station ID is present in the credentials file or environment. |
+| Connection error | Check network access, account details and availability of the GoodWe service. Node.js 22 or later is required. |
+| Missing energy values | The relevant counters may not be available from SEMS for every inverter. |
+| Module does not load | Check that the folder, main JavaScript file and configured module name all use `MMM-Goodwe-SemsPortal-V3`. |
+
+## License and acknowledgements
+
+Released under the [MIT License](LICENSE).
+
+The SEMS+ energy counter field names also appear in [MMM-GoodWe](https://github.com/marcovanwoudenberg/MMM-GoodWe). Dashboard and login code from that project has not been incorporated.
