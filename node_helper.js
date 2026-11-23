@@ -52,7 +52,7 @@ module.exports = NodeHelper.create({
     console.log("[GoodWe] SEMS+ helper started");
   },
 
-  request: async function (url, token, body) {
+  request: async function (url, token, body, diagnostic) {
     if (Date.now() < this.retryAfter) throw new Error("API cooldown active");
     const response = await fetch(url, {
       method: body === undefined ? "GET" : "POST",
@@ -69,9 +69,11 @@ module.exports = NodeHelper.create({
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
+    if (diagnostic) diagnostic.httpStatus = response.status;
     if (response.status === 429) this.retryAfter = Date.now() + 300000;
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const result = await response.json();
+    if (diagnostic) diagnostic.apiCode = String(result?.code ?? "missing").slice(0, 32);
     if (!["0", "00000"].includes(String(result?.code))) {
       const code = String(result?.code || "unknown");
       if (code === "GY0429") this.retryAfter = Date.now() + 300000;
@@ -144,20 +146,47 @@ module.exports = NodeHelper.create({
     console.log("[GoodWe] SEMS+ login successful");
   },
 
-  get: async function (path, query, retry = true) {
+  get: async function (path, query, retry = true, diagnostic) {
     if (!this.session) await this.login();
     try {
       const response = await this.request(
-        this.base + path + "?" + new URLSearchParams(query), this.session
+        this.base + path + "?" + new URLSearchParams(query), this.session, undefined, diagnostic
       );
       return response.data;
     } catch (error) {
       if (retry && ["100002", "C0602"].includes(error.code)) {
         await this.login();
-        return this.get(path, query, false);
+        if (diagnostic) {
+          diagnostic.retried = true;
+          diagnostic.previousApiCode = diagnostic.apiCode;
+          delete diagnostic.httpStatus;
+          delete diagnostic.apiCode;
+        }
+        return this.get(path, query, false, diagnostic);
       }
       throw error;
     }
+  },
+
+  logEnergyDiagnostics: function (inverterIndex, groups, counters, diagnostic, failure) {
+    if (this.config?.debugEnergy !== true) return;
+    const scalar = value => typeof value === "string" ? value.slice(0, 80)
+      : typeof value === "number" && Number.isFinite(value) ? value : null;
+    const fields = Object.values(energyCodes).filter(code => !diagnostic.counterCode || code === diagnostic.counterCode).map(code => {
+      const factor = counters.get(code);
+      const normalizedKwh = number(factor, "kWh");
+      let reason = "ok";
+      if (failure) reason = failure;
+      else if (!factor) reason = "missing_factor";
+      else if (factor.data == null || String(factor.data).trim() === "") reason = "missing_data";
+      else if (normalizedKwh === null) reason = "invalid_value_or_unit";
+      return { code, present: !!factor, data: scalar(factor?.data),
+        dataType: typeof factor?.data, unit: scalar(factor?.unit), normalizedKwh, reason };
+    });
+    // Only energy counters are logged: never headers, credentials, URLs or device IDs.
+    console.log("[GoodWe][ENERGY] " + JSON.stringify({ timestamp: new Date().toISOString(),
+      inverterIndex, ...diagnostic, responseShape: Array.isArray(groups) ? "array" : typeof groups,
+      groupCount: Array.isArray(groups) ? groups.length : null, fields }));
   },
 
   solar: async function () {
@@ -187,8 +216,28 @@ module.exports = NodeHelper.create({
       let counters = new Map();
       try { telemetry = factors(await this.get(path + "/telemetry", query)); }
       catch (_) { console.warn("[GoodWe] Telemetry unavailable for one inverter"); }
-      try { counters = factors(await this.get(path + "/telecounting", query)); }
-      catch (_) { console.warn("[GoodWe] Energy counters unavailable for one inverter"); }
+      // SEMS+ now requires an explicit period group per counter request.
+      // Fetch separately: combining all periods is rejected with A0400.
+      for (const [period, code] of Object.entries(energyCodes)) {
+        const group = "telecounting_" + ({ total: "lifetime" }[period] || period);
+        const diagnostic = { group, counterCode: code };
+        let counterGroups;
+        let counterFailure;
+        try {
+          const groupedQuery = new URLSearchParams(query);
+          groupedQuery.append("groups", "telecounting_real");
+          groupedQuery.append("groups", group);
+          counterGroups = await this.get(path + "/telecounting", groupedQuery, true, diagnostic);
+          counterFailure = "invalid_response_shape";
+          const periodCounters = factors(counterGroups);
+          if (periodCounters.has(code)) counters.set(code, periodCounters.get(code));
+          counterFailure = null;
+        } catch (error) {
+          counterFailure = counterFailure || (error?.name === "TimeoutError" ? "timeout" : "request_failed");
+          console.warn("[GoodWe] Energy counter unavailable: " + code);
+        }
+        this.logEnergyDiagnostics(output.length + 1, counterGroups, counters, diagnostic, counterFailure);
+      }
       const energy = Object.fromEntries(Object.entries(energyCodes).map(([key, code]) => [key, number(counters.get(code), "kWh")]));
       const kw = number(telemetry.get("pAc"), "kW");
       const today = energy.today;
@@ -214,7 +263,7 @@ module.exports = NodeHelper.create({
         energy,
         powerWatts: kw === null ? null : kw * 1000,
         out_pac: kw === null ? 0 : kw * 1000,
-        eday: today,
+        proPvStatsToday: today,
         etotal: total ?? "—",
         invert_full: { status: kw === null ? 0 : 1 },
         d: { output_power: kw === null ? "—" : (kw * 1000).toFixed(0) + " W" },

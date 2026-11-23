@@ -2,7 +2,7 @@
 
 A MagicMirror² module for monitoring a GoodWe solar installation through SEMS+.
 
-**Version: V3.0.3**
+**Version: V3.0.4**
 
 ## Features
 
@@ -142,6 +142,7 @@ With file-based login, `GOODWE_POWERSTATION_ID` can override the station ID in t
 | `showAlarms` | Retrieve and display alarms. Default: `true`. |
 | `showResolvedAlarms` | Include resolved alarms. Default: `false`. |
 | `alarmLimit` | Maximum displayed alarms, from `1` to `15`. Default: `3`. |
+| `debugEnergy` | Log energy counter diagnostics on the server. Default: `false`. Enable temporarily for troubleshooting. |
 
 ### Custom gauge colors
 
@@ -176,7 +177,9 @@ Other languages fall back to English. Number formatting follows the selected lan
 
 ## Energy totals
 
-Energy values are shown in kWh. The module uses the SEMS+ period counters for today, this week, this month, this year and lifetime production.
+Energy counters are normalized to kWh. The daily summary shows Wh below 1 kWh; other energy fields show kWh. The module uses the SEMS+ period counters for today, this week, this month, this year and lifetime production.
+
+Each period is requested separately with the SEMS+ `groups` selection. This fixes the `A0400` errors caused by requests without an explicit period selection. Each refresh makes five energy counter requests per inverter, in addition to telemetry and device discovery. A failed period request does not discard other available periods.
 
 Period boundaries are determined by GoodWe. Weekly, monthly and yearly values are calendar-period counters, rather than rolling 7-, 30- or 365-day totals.
 
@@ -207,7 +210,9 @@ git pull --ff-only
 
 Restart MagicMirror after updating.
 
-Version V3.0.3 removes the built-in demonstration mode. The module always uses live SEMS+ data. Remove any old `testMode` option from your configuration; it no longer has an effect.
+Version V3.0.4 restores energy counters using explicit SEMS+ period selections and adds optional energy diagnostics. The internal daily yield field now uses the SEMS+ name `proPvStatsToday`.
+
+Version V3.0.3 removed the built-in demonstration mode. The module always uses live SEMS+ data. Remove any old `testMode` option from your configuration; it no longer has an effect.
 
 ### Migrating from an earlier login configuration
 
@@ -225,8 +230,40 @@ Usernames and passwords in `config/config.js` are no longer used for login. An e
 | Credentials error | Confirm that the credentials file contains valid JSON, includes a username and password, and is readable by the user running MagicMirror. |
 | Missing configuration | Check that the power station ID is present in the credentials file or environment. |
 | Connection error | Check network access, account details and availability of the GoodWe service. Node.js 22 or later is required. |
-| Missing energy values | The relevant counters may not be available from SEMS for every inverter. |
+| Missing energy values | Enable `debugEnergy` as described below. `A0400` indicates a rejected request; update to V3.0.4 for explicit period selections. Some counters may still be unavailable for particular inverters. |
 | Module does not load | Check that the folder, main JavaScript file and configured module name all use `MMM-Goodwe-SemsPortal-V3`. |
+
+### Energy diagnostics
+
+To investigate missing energy values, add this setting inside the module's `config` object:
+
+```js
+debugEnergy: true,
+```
+
+Restart MagicMirror. The server log will contain JSON entries prefixed with `[GoodWe][ENERGY]`, one per period and inverter on each refresh. Each entry includes a UTC timestamp, inverter index, period group, available HTTP and API status, received counter value and unit, normalized kWh value, and a diagnostic reason.
+
+| Reason | Meaning |
+| --- | --- |
+| `ok` | The counter was converted successfully, including a valid zero. |
+| `missing_factor` | The expected counter was absent. |
+| `missing_data` | The counter had no measurement. |
+| `invalid_value_or_unit` | The value or unit was rejected by the conversion. |
+| `request_failed` | The request failed; inspect the available status fields. |
+| `timeout` | The request timed out. |
+| `invalid_response_shape` | The response structure was not recognized. |
+
+HTTP 200 alone does not indicate API success. The API code must also be successful (`00000` or `0`). Status fields may be absent if no response was received.
+
+The diagnostic entries include only the selected energy counters, not credentials, request headers, complete API responses, station IDs or device serial numbers. Logging reuses normal requests and makes no extra API calls.
+
+With PM2, read the output log for your MagicMirror process. For a process named `mm` using the default PM2 log location:
+
+```bash
+grep -aF '[GoodWe][ENERGY]' ~/.pm2/logs/mm-out.log | tail -n 15
+```
+
+Other process names or custom PM2 settings may use a different log file. Compare the logged values with the SEMS+ portal at the same time. After troubleshooting, remove `debugEnergy` or set it to `false`, then restart MagicMirror.
 
 ## License and acknowledgements
 

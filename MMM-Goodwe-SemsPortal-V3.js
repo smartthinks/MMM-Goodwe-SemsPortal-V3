@@ -4,6 +4,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     defaults: {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
+        debugEnergy: false,
         showAlarms: true,
         showResolvedAlarms: false,
         alarmLimit: 3,
@@ -391,7 +392,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     
                 const resultsArray = [];
                 resultsArray[0] = inverter.d.output_power;
-                resultsArray[1] = this.formatEnergy(inverter.eday);
+                resultsArray[1] = this.formatEnergy(inverter.proPvStatsToday);
                 resultsArray[2] = this.formatEnergy(inverter.etotal);
     
                 for (let j=0; j < this.goodWeOptions.config.main.length; j++) {
