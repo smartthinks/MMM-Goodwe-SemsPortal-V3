@@ -6,7 +6,6 @@
   "LOADING": "Laden...",
   "TODAY": "Vandaag",
   "OFFLINE": "Offline",
-  "TEST_INVERTER": "TEST omvormer",
   "FIELD_dmDeviceType": "Apparaattype",
   "FIELD_serialNum": "Serienummer",
   "FIELD_laCheckcode": "Controlecode",
@@ -26,7 +25,6 @@
   "YIELD_WEEK": "Deze week",
   "YIELD_MONTH": "Deze maand",
   "YIELD_YEAR": "Dit jaar",
-  "TEST_MODE": "TESTSTAND · voorbeeldgegevens",
   "CREDENTIALS_ERROR": "Inlogbestand ontbreekt of is ongeldig.",
   "CONNECTION_ERROR": "GoodWe-gegevens konden niet worden vernieuwd. Eerdere waarden kunnen verouderd zijn.",
   "ALARMS_TITLE": "Alarmmeldingen",
@@ -37,8 +35,6 @@
   "ALARM_ACTIVE": "Actief",
   "ALARM_RESOLVED": "Hersteld",
   "ALARM_STATE_UNKNOWN": "Status onbekend",
-  "TEST_ALARM_ACTIVE": "TEST · voorbeeld van actieve storing",
-  "TEST_ALARM_RESOLVED": "TEST · voorbeeld van herstelde storing",
   "ALARM_DEVICE": "Omvormer",
   "ALARM_DEVICE_UNKNOWN": "Omvormer onbekend"
 }

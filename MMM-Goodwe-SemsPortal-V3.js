@@ -4,7 +4,6 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     defaults: {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
-        testMode: false,
         showAlarms: true,
         showResolvedAlarms: false,
         alarmLimit: 3,
@@ -47,7 +46,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         }
 
         // get our token so that we can request our data
-        if (!this.config.testMode) this.authenticateUser();
+        this.authenticateUser();
         this.loadGoodWeOptions();
 
         if (this.config.basicHeader) {
@@ -99,7 +98,6 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
     //Contact node helper for solar data
     getSolarData: function() {
-        if (this.config.testMode) return;
         Log.info("SolarApp: getting data");
 
         this.sendSocketNotification("GET_SOLAR", {
@@ -108,7 +106,7 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     },
 
     getAlarmData: function() {
-        if (this.config.testMode || !this.config.showAlarms) return;
+        if (!this.config.showAlarms) return;
         const language = typeof config !== "undefined" ? config.language : "en";
         this.sendSocketNotification("GET_ALARMS", { config: this.config, language });
     },
@@ -175,7 +173,6 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     // Handle node helper response
     socketNotificationReceived: function(notification, payload) {
         if (notification === "SOLAR_DATA") {
-            if (this.config.testMode) return;
             this.errorCode = null;
             this.energyTotals = payload.energy || {};
             this.inverters = [];
@@ -207,7 +204,6 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             this.loaded = true;
             this.updateDom(1000);
         } else if (notification === "GOODWE_ERROR") {
-            if (this.config.testMode) return;
             this.errorCode = ["CREDENTIALS_ERROR", "MISSING_CONFIGURATION"].includes(payload) ? payload : "CONNECTION_ERROR";
             this.updateDom();
         } else if (notification === "LOGIN_USER") {
@@ -215,12 +211,10 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
             this.getSolarData();
             this.getAlarmData();
         } else if (notification === "ALARM_DATA") {
-            if (this.config.testMode) return;
             this.alarms = Array.isArray(payload) ? payload : [];
             this.alarmState = "ok";
             this.updateDom();
         } else if (notification === "ALARM_ERROR") {
-            if (this.config.testMode) return;
             this.alarmState = "error";
             this.updateDom();
         } else if (notification === "LOAD_OPTIONS") {
@@ -266,41 +260,12 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
 
     // Override dom generator
     getDom: function() {
-        if (this.config.testMode === true) {
-            const capacity = Number(this.config.totalCapacity) > 0 ? Number(this.config.totalCapacity) : 7500;
-            this.loaded = true;
-            this.invertersOffline = false;
-            this.currentPowerTotal = 1500;
-            this.currentPowerTitle = "1.50 kW";
-            this.alarmState = "ok";
-            this.alarms = [
-                { message: this.translate("TEST_ALARM_ACTIVE"), deviceName: this.translate("TEST_INVERTER") + " 1", time: "12:00", state: "active" },
-                { message: this.translate("TEST_ALARM_RESOLVED"), deviceName: this.translate("TEST_INVERTER") + " 2", time: "09:00", state: "resolved" }
-            ];
-            this.energyTotals = { today: 4.2, week: 28.6, month: 124.8, year: 2450.5, total: 12840.7 };
-            this.dayGeneration = this.formatEnergy(this.energyTotals.today, true);
-            this.totalCapacity = capacity;
-            const fields = (side) => (this.goodWeOptions?.config?.[side] || []).map(field => ({
-                key: field.API_field, value: "—", unit: ""
-            })).filter(field => !["capacity", "InverterPowerOfPlantMonitor"].includes(field.key));
-            this.inverters = [{
-                name: this.translate("TEST_INVERTER"), out_pac: 1500,
-                eday: 4.2, etotal: 1000, invert_full: { status: 1 },
-                d: { output_power: "1500 W" },
-                dict: {
-                    left: [...fields("left"),
-                        { key: "capacity", value: capacity / 1000, unit: "kW" },
-                        { key: "InverterPowerOfPlantMonitor", value: 1.5, unit: "kW" }],
-                    right: fields("right")
-                }
-            }];
-        }
         var wrapper = document.createElement("div");
         wrapper.className += "goodwe-content-wrapper"
         
-        if (!this.config.testMode && this.errorCode) {
+        if (this.errorCode) {
             const error = document.createElement("div");
-            error.className = "goodwe-test-error";
+            error.className = "goodwe-error";
             error.textContent = this.translate(this.errorCode);
             wrapper.appendChild(error);
             if (!this.loaded) {
@@ -308,13 +273,6 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 return wrapper;
             }
         }
-        if (this.config.testMode) {
-            const badge = document.createElement("div");
-            badge.className = "goodwe-test-badge";
-            badge.textContent = this.translate("TEST_MODE");
-            wrapper.appendChild(badge);
-        }
-
         // Display loading while waiting for API response
         if (!this.loaded) {
             const loading = document.createElement("div");

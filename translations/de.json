@@ -6,7 +6,6 @@
   "LOADING": "Wird geladen...",
   "TODAY": "Heute",
   "OFFLINE": "Offline",
-  "TEST_INVERTER": "TEST-Wechselrichter",
   "FIELD_dmDeviceType": "Gerätetyp",
   "FIELD_serialNum": "Seriennummer",
   "FIELD_laCheckcode": "Prüfcode",
@@ -26,7 +25,6 @@
   "YIELD_WEEK": "Diese Woche",
   "YIELD_MONTH": "Diesen Monat",
   "YIELD_YEAR": "Dieses Jahr",
-  "TEST_MODE": "TESTMODUS · Beispieldaten",
   "CREDENTIALS_ERROR": "Die Zugangsdaten fehlen oder sind ungültig.",
   "CONNECTION_ERROR": "GoodWe-Daten konnten nicht aktualisiert werden. Vorherige Werte können veraltet sein.",
   "ALARMS_TITLE": "Alarmmeldungen",
@@ -37,8 +35,6 @@
   "ALARM_ACTIVE": "Aktiv",
   "ALARM_RESOLVED": "Behoben",
   "ALARM_STATE_UNKNOWN": "Status unbekannt",
-  "TEST_ALARM_ACTIVE": "TEST · Beispiel einer aktiven Störung",
-  "TEST_ALARM_RESOLVED": "TEST · Beispiel einer behobenen Störung",
   "ALARM_DEVICE": "Wechselrichter",
   "ALARM_DEVICE_UNKNOWN": "Unbekannter Wechselrichter"
 }

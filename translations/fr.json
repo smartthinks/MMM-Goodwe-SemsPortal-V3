@@ -6,7 +6,6 @@
   "LOADING": "Chargement...",
   "TODAY": "Aujourd’hui",
   "OFFLINE": "Hors ligne",
-  "TEST_INVERTER": "Onduleur TEST",
   "FIELD_dmDeviceType": "Type d’appareil",
   "FIELD_serialNum": "Numéro de série",
   "FIELD_laCheckcode": "Code de vérification",
@@ -26,7 +25,6 @@
   "YIELD_WEEK": "Cette semaine",
   "YIELD_MONTH": "Ce mois-ci",
   "YIELD_YEAR": "Cette année",
-  "TEST_MODE": "MODE TEST · données fictives",
   "CREDENTIALS_ERROR": "Les identifiants sont absents ou invalides.",
   "CONNECTION_ERROR": "Impossible d’actualiser les données GoodWe. Les valeurs précédentes peuvent être obsolètes.",
   "ALARMS_TITLE": "Messages d’alarme",
@@ -37,8 +35,6 @@
   "ALARM_ACTIVE": "Active",
   "ALARM_RESOLVED": "Résolue",
   "ALARM_STATE_UNKNOWN": "État inconnu",
-  "TEST_ALARM_ACTIVE": "TEST · exemple d’alarme active",
-  "TEST_ALARM_RESOLVED": "TEST · exemple d’alarme résolue",
   "ALARM_DEVICE": "Onduleur",
   "ALARM_DEVICE_UNKNOWN": "Onduleur inconnu"
 }

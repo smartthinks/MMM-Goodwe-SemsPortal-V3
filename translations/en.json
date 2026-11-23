@@ -6,7 +6,6 @@
   "LOADING": "Loading...",
   "TODAY": "Today",
   "OFFLINE": "Offline",
-  "TEST_INVERTER": "TEST inverter",
   "FIELD_dmDeviceType": "Device type",
   "FIELD_serialNum": "Serial number",
   "FIELD_laCheckcode": "Check code",
@@ -26,7 +25,6 @@
   "YIELD_WEEK": "This week",
   "YIELD_MONTH": "This month",
   "YIELD_YEAR": "This year",
-  "TEST_MODE": "TEST MODE · sample data",
   "CREDENTIALS_ERROR": "Credentials file is missing or invalid.",
   "CONNECTION_ERROR": "Unable to refresh GoodWe data. Previous values may be out of date.",
   "ALARMS_TITLE": "Alarm messages",
@@ -37,8 +35,6 @@
   "ALARM_ACTIVE": "Active",
   "ALARM_RESOLVED": "Resolved",
   "ALARM_STATE_UNKNOWN": "Status unknown",
-  "TEST_ALARM_ACTIVE": "TEST · example active alarm",
-  "TEST_ALARM_RESOLVED": "TEST · example resolved alarm",
   "ALARM_DEVICE": "Inverter",
   "ALARM_DEVICE_UNKNOWN": "Unknown inverter"
 }

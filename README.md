@@ -2,7 +2,7 @@
 
 A MagicMirror² module for monitoring a GoodWe solar installation through SEMS+.
 
-**Version: V3.0.2**
+**Version: V3.0.3**
 
 ## Features
 
@@ -206,6 +206,8 @@ git pull --ff-only
 ```
 
 Restart MagicMirror after updating.
+
+Version V3.0.3 removes the built-in demonstration mode. The module always uses live SEMS+ data. Remove any old `testMode` option from your configuration; it no longer has an effect.
 
 ### Migrating from an earlier login configuration
 
