@@ -2,7 +2,7 @@
 
 A MagicMirror² module for monitoring a GoodWe solar installation through SEMS+.
 
-**Version: V3.0.4**
+**Version: V3.0.5**
 
 ## Features
 
@@ -179,11 +179,21 @@ Other languages fall back to English. Number formatting follows the selected lan
 
 Energy counters are normalized to kWh. The daily summary shows Wh below 1 kWh; other energy fields show kWh. The module uses the SEMS+ period counters for today, this week, this month, this year and lifetime production.
 
-Each period is requested separately with the SEMS+ `groups` selection. This fixes the `A0400` errors caused by requests without an explicit period selection. Each refresh makes five energy counter requests per inverter, in addition to telemetry and device discovery. A failed period request does not discard other available periods.
+Each period is requested separately with the SEMS+ `groups` selection. This fixes the `A0400` errors caused by requests without an explicit period selection. Daily yield and current power are refreshed on the configured interval. Week, month, year and lifetime counters are reused for up to 15 minutes, then refreshed. Cached periods are also invalidated when the server's local or UTC calendar date changes. GoodWe determines the actual period boundaries. On a full refresh there are five energy counter requests per inverter; cached refreshes request only daily yield, in addition to telemetry and device discovery. A failed period request does not discard other available periods.
 
 Period boundaries are determined by GoodWe. Weekly, monthly and yearly values are calendar-period counters, rather than rolling 7-, 30- or 365-day totals.
 
 If a required counter is unavailable for an inverter, the corresponding combined total is displayed as `—` instead of a partial sum.
+
+### Request pacing and startup
+
+Requests made by this module, including login and alarms, share a queue with at least two seconds between the completion of one request and the start of the next. With three inverters, a full solar refresh makes 19 requests and a refresh with cached period counters makes 7, excluding login and alarms.
+
+HTTP 429 or API code `GY0429` stops the current solar refresh. The module waits at least five minutes, or longer if the server supplies a longer `Retry-After`. Previous display values are retained with an error notice and may be out of date. The queue coordinates only this module; other applications using the account may still contribute to rate limits.
+
+The cache and cooldown are held in memory. Restarting clears them, so avoid repeated restarts when investigating a rate limit.
+
+The overview appears immediately with placeholders and a translated waiting notice above the daily yield separator. The notice disappears after the first solar response. The first full round with three inverters typically takes about 45 seconds, depending on server response times. The overview uses a consistent 320-pixel width, constrained by its container, so placeholders and received values do not change its width. Existing MagicMirror zoom settings still apply.
 
 ## Alarms
 
@@ -209,6 +219,8 @@ git pull --ff-only
 ```
 
 Restart MagicMirror after updating.
+
+Version V3.0.5 adds request pacing, cached period counters, rate-limit handling and a consistent waiting/display layout with four-language waiting text.
 
 Version V3.0.4 restores energy counters using explicit SEMS+ period selections and adds optional energy diagnostics. The internal daily yield field now uses the SEMS+ name `proPvStatsToday`.
 
@@ -241,7 +253,7 @@ To investigate missing energy values, add this setting inside the module's `conf
 debugEnergy: true,
 ```
 
-Restart MagicMirror. The server log will contain JSON entries prefixed with `[GoodWe][ENERGY]`, one per period and inverter on each refresh. Each entry includes a UTC timestamp, inverter index, period group, available HTTP and API status, received counter value and unit, normalized kWh value, and a diagnostic reason.
+Restart MagicMirror. The server log will contain JSON entries prefixed with `[GoodWe][ENERGY]`, one per period and inverter on each refresh. Each entry includes a UTC timestamp, inverter index, period group, available HTTP and API status, received counter value and unit, normalized kWh value, and a diagnostic reason. `source: "cache"` and `ageSeconds` identify reused counters; these entries do not have HTTP/API status because no new request was made.
 
 | Reason | Meaning |
 | --- | --- |
@@ -251,6 +263,7 @@ Restart MagicMirror. The server log will contain JSON entries prefixed with `[Go
 | `invalid_value_or_unit` | The value or unit was rejected by the conversion. |
 | `request_failed` | The request failed; inspect the available status fields. |
 | `timeout` | The request timed out. |
+| `rate_limited` | SEMS limited requests; `retryAt` gives the cooldown deadline in UTC. |
 | `invalid_response_shape` | The response structure was not recognized. |
 
 HTTP 200 alone does not indicate API success. The API code must also be successful (`00000` or `0`). Status fields may be absent if no response was received.

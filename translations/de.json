@@ -36,5 +36,6 @@
   "ALARM_RESOLVED": "Behoben",
   "ALARM_STATE_UNKNOWN": "Status unbekannt",
   "ALARM_DEVICE": "Wechselrichter",
-  "ALARM_DEVICE_UNKNOWN": "Unbekannter Wechselrichter"
+  "ALARM_DEVICE_UNKNOWN": "Unbekannter Wechselrichter",
+  "WAITING_FOR_DATA": "Warten auf Daten…"
 }

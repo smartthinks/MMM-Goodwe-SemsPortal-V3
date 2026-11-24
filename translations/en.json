@@ -36,5 +36,6 @@
   "ALARM_RESOLVED": "Resolved",
   "ALARM_STATE_UNKNOWN": "Status unknown",
   "ALARM_DEVICE": "Inverter",
-  "ALARM_DEVICE_UNKNOWN": "Unknown inverter"
+  "ALARM_DEVICE_UNKNOWN": "Unknown inverter",
+  "WAITING_FOR_DATA": "Waiting for data…"
 }

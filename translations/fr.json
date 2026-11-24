@@ -36,5 +36,6 @@
   "ALARM_RESOLVED": "Résolue",
   "ALARM_STATE_UNKNOWN": "État inconnu",
   "ALARM_DEVICE": "Onduleur",
-  "ALARM_DEVICE_UNKNOWN": "Onduleur inconnu"
+  "ALARM_DEVICE_UNKNOWN": "Onduleur inconnu",
+  "WAITING_FOR_DATA": "En attente des données…"
 }

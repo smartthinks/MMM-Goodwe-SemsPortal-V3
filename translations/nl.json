@@ -36,5 +36,6 @@
   "ALARM_RESOLVED": "Hersteld",
   "ALARM_STATE_UNKNOWN": "Status onbekend",
   "ALARM_DEVICE": "Omvormer",
-  "ALARM_DEVICE_UNKNOWN": "Omvormer onbekend"
+  "ALARM_DEVICE_UNKNOWN": "Omvormer onbekend",
+  "WAITING_FOR_DATA": "Wachten op gegevens…"
 }

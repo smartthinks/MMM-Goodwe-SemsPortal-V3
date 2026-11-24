@@ -49,11 +49,27 @@ module.exports = NodeHelper.create({
     this.alarmBusy = false;
     this.inverterNames = new Map();
     this.retryAfter = 0;
+    this.requestQueue = Promise.resolve();
+    this.nextRequestAt = 0;
+    this.energyCache = new Map();
     console.log("[GoodWe] SEMS+ helper started");
   },
 
   request: async function (url, token, body, diagnostic) {
-    if (Date.now() < this.retryAfter) throw new Error("API cooldown active");
+    const run = async () => {
+      if (Date.now() < this.retryAfter) throw Object.assign(new Error("API cooldown active"), { code: "RATE_LIMITED" });
+      const wait = Math.max(0, (this.nextRequestAt || 0) - Date.now());
+      if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+      if (Date.now() < this.retryAfter) throw Object.assign(new Error("API cooldown active"), { code: "RATE_LIMITED" });
+      try { return await this.performRequest(url, token, body, diagnostic); }
+      finally { this.nextRequestAt = Date.now() + 2000; }
+    };
+    const pending = (this.requestQueue || Promise.resolve()).then(run);
+    this.requestQueue = pending.catch(() => {});
+    return pending;
+  },
+
+  performRequest: async function (url, token, body, diagnostic) {
     const response = await fetch(url, {
       method: body === undefined ? "GET" : "POST",
       signal: AbortSignal.timeout(30000),
@@ -70,13 +86,22 @@ module.exports = NodeHelper.create({
       ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
     if (diagnostic) diagnostic.httpStatus = response.status;
-    if (response.status === 429) this.retryAfter = Date.now() + 300000;
+    if (response.status === 429) {
+      const header = response.headers?.get("Retry-After");
+      const seconds = header == null ? NaN : Number(header);
+      const until = Number.isFinite(seconds) ? Date.now() + seconds * 1000 : Date.parse(header);
+      this.retryAfter = Math.max(Date.now() + 300000, Number.isFinite(until) ? until : 0);
+      throw Object.assign(new Error("API rate limited"), { code: "RATE_LIMITED" });
+    }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const result = await response.json();
     if (diagnostic) diagnostic.apiCode = String(result?.code ?? "missing").slice(0, 32);
     if (!["0", "00000"].includes(String(result?.code))) {
       const code = String(result?.code || "unknown");
-      if (code === "GY0429") this.retryAfter = Date.now() + 300000;
+      if (code === "GY0429") {
+        this.retryAfter = Date.now() + 300000;
+        throw Object.assign(new Error("API rate limited"), { code: "RATE_LIMITED" });
+      }
       const error = new Error("API-code " + code);
       error.code = code;
       throw error;
@@ -215,7 +240,7 @@ module.exports = NodeHelper.create({
       let telemetry = new Map();
       let counters = new Map();
       try { telemetry = factors(await this.get(path + "/telemetry", query)); }
-      catch (_) { console.warn("[GoodWe] Telemetry unavailable for one inverter"); }
+      catch (error) { if (error.code === "RATE_LIMITED") throw error; console.warn("[GoodWe] Telemetry unavailable for one inverter"); }
       // SEMS+ now requires an explicit period group per counter request.
       // Fetch separately: combining all periods is rejected with A0400.
       for (const [period, code] of Object.entries(energyCodes)) {
@@ -223,6 +248,18 @@ module.exports = NodeHelper.create({
         const diagnostic = { group, counterCode: code };
         let counterGroups;
         let counterFailure;
+        const now = new Date();
+        const dateKey = now.toDateString() + "/" + now.toISOString().slice(0, 10);
+        const cacheKey = JSON.stringify([stationId, device.sn, device.deviceType, code]);
+        const cached = this.energyCache?.get(cacheKey);
+        if (period !== "today" && cached && cached.dateKey === dateKey && Date.now() - cached.at < 15 * 60 * 1000) {
+          counters.set(code, cached.factor);
+          diagnostic.source = "cache";
+          diagnostic.ageSeconds = Math.floor((Date.now() - cached.at) / 1000);
+          this.logEnergyDiagnostics(output.length + 1, undefined, counters, diagnostic, null);
+          continue;
+        }
+        diagnostic.source = "api";
         try {
           const groupedQuery = new URLSearchParams(query);
           groupedQuery.append("groups", "telecounting_real");
@@ -230,9 +267,24 @@ module.exports = NodeHelper.create({
           counterGroups = await this.get(path + "/telecounting", groupedQuery, true, diagnostic);
           counterFailure = "invalid_response_shape";
           const periodCounters = factors(counterGroups);
-          if (periodCounters.has(code)) counters.set(code, periodCounters.get(code));
+          if (periodCounters.has(code)) {
+            const factor = periodCounters.get(code);
+            counters.set(code, factor);
+            if (period !== "today" && number(factor, "kWh") !== null) {
+              if (!this.energyCache) this.energyCache = new Map();
+              // Date after the response avoids caching across a request's midnight boundary.
+              const received = new Date();
+              const receivedKey = received.toDateString() + "/" + received.toISOString().slice(0, 10);
+              if (receivedKey === dateKey) this.energyCache.set(cacheKey, { factor, at: Date.now(), dateKey });
+            }
+          }
           counterFailure = null;
         } catch (error) {
+          if (error.code === "RATE_LIMITED") {
+            diagnostic.retryAt = new Date(this.retryAfter).toISOString();
+            this.logEnergyDiagnostics(output.length + 1, counterGroups, counters, diagnostic, "rate_limited");
+            throw error;
+          }
           counterFailure = counterFailure || (error?.name === "TimeoutError" ? "timeout" : "request_failed");
           console.warn("[GoodWe] Energy counter unavailable: " + code);
         }

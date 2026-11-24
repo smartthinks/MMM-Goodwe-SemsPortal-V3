@@ -4,7 +4,6 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     defaults: {
         refInterval: 1000 * 60 * 5, //5 minutes
         basicHeader: false,
-        debugEnergy: false,
         showAlarms: true,
         showResolvedAlarms: false,
         alarmLimit: 3,
@@ -263,6 +262,9 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
     getDom: function() {
         var wrapper = document.createElement("div");
         wrapper.className += "goodwe-content-wrapper"
+        wrapper.style.width = "320px";
+        wrapper.style.maxWidth = "100%";
+        wrapper.style.boxSizing = "border-box";
         
         if (this.errorCode) {
             const error = document.createElement("div");
@@ -274,16 +276,13 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 return wrapper;
             }
         }
-        // Display loading while waiting for API response
-        if (!this.loaded) {
-            const loading = document.createElement("div");
-            loading.textContent = this.translate("LOADING");
-            wrapper.appendChild(loading);
-            if (this.hasAlarmMessages()) wrapper.appendChild(this.makeAlarmOverview());
-            return wrapper;
-      	}
-
-        var imgDiv = document.createElement("div");
+        // Render the dashboard immediately; unknown values remain placeholders.
+        var imgDiv = document.createElement("table");
+        imgDiv.style.width = "100%";
+        imgDiv.style.borderCollapse = "collapse";
+        imgDiv.style.fontSize = "16px";
+        imgDiv.style.alignSelf = "stretch";
+        imgDiv.style.textAlign = "left";
         var img = document.createElement("img");
         img.className += "solar-image"
 
@@ -297,10 +296,35 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         }
 
         var sTitle = document.createElement("p");
-        sTitle.textContent = this.translate("TODAY") + ": " + this.dayGeneration;
+        sTitle.textContent = this.translate("TODAY");
         sTitle.className += " thin normal main-title content-title";
-        imgDiv.appendChild(img);
-        imgDiv.appendChild(sTitle);
+        const dayRow = document.createElement("tr");
+        const dayLabel = document.createElement("td");
+        dayLabel.style.textAlign = "left";
+        dayLabel.style.padding = "4px 16px 4px 0";
+        dayLabel.appendChild(img);
+        dayLabel.appendChild(sTitle);
+        const dayParts = /^(.*) (k?Wh)$/.exec(this.dayGeneration);
+        const dayValue = document.createElement("td");
+        dayValue.textContent = dayParts ? dayParts[1] : this.dayGeneration;
+        dayValue.style.textAlign = "right";
+        dayValue.style.whiteSpace = "nowrap";
+        dayValue.style.fontVariantNumeric = "tabular-nums";
+        dayValue.style.padding = "4px 0";
+        const dayUnit = document.createElement("td");
+        dayUnit.textContent = dayParts ? dayParts[2] : "";
+        dayUnit.style.textAlign = "left";
+        dayUnit.style.whiteSpace = "nowrap";
+        dayUnit.style.padding = "4px 0 4px 8px";
+        dayUnit.style.width = "3ch";
+
+        dayRow.appendChild(dayLabel);
+        dayRow.appendChild(dayValue);
+        if (dayParts) dayRow.appendChild(dayUnit);
+
+        const dayBody = document.createElement("tbody");
+        dayBody.appendChild(dayRow);
+        imgDiv.appendChild(dayBody);
 
         var divider = document.createElement("hr");
         divider.className += "solar-width dimmed h-ruler";
@@ -466,10 +490,18 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
         }
         
         // append the devider and total at the bottom
+        if (!this.loaded) {
+            const waiting = document.createElement("div");
+            waiting.textContent = this.translate("WAITING_FOR_DATA");
+            waiting.className = "dimmed small";
+            waiting.style.textAlign = "left";
+            waiting.style.marginBottom = "6px";
+            wrapper.appendChild(waiting);
+        }
         wrapper.appendChild(divider);
         wrapper.appendChild(imgDiv);
 
-        if (this.config.showBottomTotalGauge && !this.invertersOffline) {
+        if (this.loaded && this.config.showBottomTotalGauge && !this.invertersOffline) {
             // setup bottom gauge
             var totalGauge = document.createElement("div");
             totalGauge.className += "ring ring--total";
@@ -539,11 +571,13 @@ Module.register("MMM-Goodwe-SemsPortal-V3", {
                 unit.style.textAlign = "left";
                 unit.style.whiteSpace = "nowrap";
                 unit.style.padding = "4px 0 4px 8px";
-                unit.style.width = "1%";
+                unit.style.width = "3ch";
+
                 unit.style.color = "#fff";
                 row.appendChild(title);
                 row.appendChild(value);
-                row.appendChild(unit);
+                if (known) row.appendChild(unit);
+
                 body.appendChild(row);
             }
             wrapper.appendChild(totals);
